@@ -1,0 +1,54 @@
+#wps-chess-container {
+    display: flex;
+    flex-wrap: wrap; /* Permet de passer à la ligne sur mobile */
+    align-items: center;
+    gap: 20px;
+}
+
+/* Conteneur pour l'échiquier, nécessaire pour le dimensionnement */
+#board-container {
+    width: 400px;
+    height: 400px;
+    max-width: 100%;
+}
+
+#game-info {
+    border-left: 1px solid #ccc;
+    padding-left: 20px;
+}
+
+#new-game-button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    border: none;
+    background-color: #0073aa;
+    color: white;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+#new-game-button:hover {
+    background-color: #005177;
+}
+
+/* Ajustement pour les petits écrans */
+@media (max-width: 600px) {
+    #board-container {
+        width: 100%;
+        height: auto;
+        padding-top: 100%; /* Ratio 1:1 pour l'échiquier */
+        position: relative;
+    }
+    #chess-board {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    #game-info {
+        border-left: none;
+        padding-left: 0;
+        width: 100%;
+    }
+}
