@@ -12,6 +12,11 @@
     max-width: 100%;
 }
 
+#chess-board {
+    width: 100%;
+    height: 100%;
+}
+
 #game-info {
     border-left: 1px solid #ccc;
     padding-left: 20px;

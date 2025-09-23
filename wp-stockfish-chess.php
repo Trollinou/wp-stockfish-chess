@@ -18,8 +18,29 @@ function wps_stockfish_chess_shortcode() {
                 <div id="chess-board"></div>
             </div>
             <div id="game-info">
+                <div class="game-options">
+                    <div id="player-color-choice">
+                        <strong>Votre couleur :</strong>
+                        <label><input type="radio" name="playerColor" value="white" checked> Blancs</label>
+                        <label><input type="radio" name="playerColor" value="black"> Noirs</label>
+                    </div>
+                    <div id="elo-choice">
+                        <label for="elo-slider">Force de l\'IA (ELO) : <strong id="elo-value">1320</strong></label>
+                        <input type="range" id="elo-slider" name="elo" min="1320" max="3190" value="1320" style="width: 100%;">
+                    </div>
+                </div>
                 <p>Statut : <span id="status">En attente de votre coup...</span></p>
                 <button id="new-game-button">Nouvelle partie</button>
+            </div>
+            <div id="game-data">
+                <div class="game-data-item">
+                    <strong>FEN:</strong>
+                    <pre id="fen-display"></pre>
+                </div>
+                <div class="game-data-item">
+                    <strong>PGN:</strong>
+                    <textarea id="pgn-display" readonly rows="5" style="width: 100%;"></textarea>
+                </div>
             </div>
         </div>
     ';
@@ -46,6 +67,7 @@ function wps_enqueue_chess_assets() {
         // --- NOUVEAUX STYLES CSS POUR CHESSGROUND ---
         wp_enqueue_style('chessground-base-css', $plugin_url . 'css/chessground.base.css');
         wp_enqueue_style('chessground-theme-css', $plugin_url . 'css/chessground.brown.css'); // Thème "brown"
+        wp_enqueue_style('chessground-pieces-css', $plugin_url . 'css/chessground.cburnett.css'); // Thème des pièces
         wp_enqueue_style('wps-stockfish-style', $plugin_url . 'css/style.css');
     }
 }
