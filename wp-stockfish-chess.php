@@ -2,8 +2,8 @@
 /**
  * Plugin Name:       WP Stockfish Chess
  * Description:       Joue aux échecs contre Stockfish (niveau débutant) via un shortcode [stockfish].
- * Version:           2.0
- * Author:            Votre Nom
+ * Version:           0.0.2
+ * Author:            Etienne Gagnon
  */
 
 if (!defined('ABSPATH')) {
@@ -71,4 +71,5 @@ function wps_enqueue_chess_assets() {
         wp_enqueue_style('wps-stockfish-style', $plugin_url . 'css/style.css');
     }
 }
+
 add_action('wp_enqueue_scripts', 'wps_enqueue_chess_assets');
