@@ -4,133 +4,168 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    const game = new Chess();
-    const stockfish = new Worker(wpsStockfishData.plugin_url + 'engine/stockfish.js');
-    const statusEl = document.getElementById('status');
+    // --- DOM Elements ---
     const boardEl = document.getElementById('chess-board');
+    const statusEl = document.getElementById('status');
+    const eloSlider = document.getElementById('elo-slider');
+    const eloValueSpan = document.getElementById('elo-value');
+    const newGameButton = document.getElementById('new-game-button');
+    const fenDisplay = document.getElementById('fen-display');
+    const pgnDisplay = document.getElementById('pgn-display');
 
-    // Fonction utilitaire pour convertir les coups de chess.js au format de Chessground
+    // --- Chess & Stockfish Instances ---
+    const game = new Chess.Chess();
+    const stockfish = new Worker(wpsStockfishData.plugin_url + 'engine/stockfish.js');
+    let ground; // Will be initialized in startNewGame
+
+    // --- ELO Slider Handler ---
+    eloSlider.addEventListener('input', () => {
+        eloValueSpan.textContent = eloSlider.value;
+    });
+
+    // --- Core Functions ---
+
+    // Sets Stockfish strength
+    function setStockfishStrength(elo) {
+        stockfish.postMessage('uci');
+        stockfish.postMessage('isready');
+        stockfish.postMessage('setoption name UCI_LimitStrength value true');
+        stockfish.postMessage('setoption name UCI_Elo value ' + elo);
+    }
+
+    // Utility to get legal moves for Chessground
     function toDests(chess) {
         const dests = new Map();
-        chess.SQUARES.forEach(s => {
+        Chess.SQUARES.forEach(s => {
             const ms = chess.moves({ square: s, verbose: true });
             if (ms.length) dests.set(s, ms.map(m => m.to));
         });
         return dests;
     }
 
-    // Fonction appelée quand le joueur fait un coup
-    function onUserMove(orig, dest) {
-        const move = game.move({ from: orig, to: dest, promotion: 'q' });
-        
-        // Si le coup est illégal, on ne fait rien, Chessground gère
-        if (move === null) return;
-        
-        updateStatus();
-        
-        // On met à jour l'échiquier pour refléter le coup
-        ground.set({
-            fen: game.fen(),
-            turnColor: 'black', // C'est au tour des noirs
-            movable: {
-                color: 'black',
-                dests: toDests(game)
-            }
-        });
-        
-        // On demande à Stockfish de jouer après un court délai
-        setTimeout(getBestMove, 500);
+    // Update FEN and PGN displays
+    function updateFenPgnDisplay() {
+        fenDisplay.textContent = game.fen();
+        pgnDisplay.value = game.pgn();
     }
 
-    // Fonction pour demander le meilleur coup à Stockfish
-    function getBestMove() {
-        if (!game.game_over()) {
-            stockfish.postMessage('position fen ' + game.fen());
-            stockfish.postMessage('go depth 2');
-        }
-    }
-
-    // Réception du message de Stockfish
-    stockfish.onmessage = function (event) {
-        const message = event.data;
-        if (message && message.includes('bestmove')) {
-            const bestMove = message.split(' ')[1];
-            const from = bestMove.substring(0, 2);
-            const to = bestMove.substring(2, 4);
-
-            game.move({ from, to });
-            
-            // On met à jour l'échiquier et on joue le coup de l'IA visuellement
-            ground.set({
-                fen: game.fen(),
-                turnColor: 'white', // C'est au tour des blancs
-                movable: {
-                    color: 'white', // Le joueur peut maintenant jouer
-                    dests: toDests(game)
-                }
-            });
-            ground.move(from, to);
-            updateStatus();
-        }
-    };
-    
-    // Configuration initiale de Chessground
-    const config = {
-        fen: game.fen(), // Position de départ
-        orientation: 'white', // Le joueur joue les blancs
-        turnColor: 'white',   // C'est au tour des blancs
-        movable: {
-            color: 'white', // On peut bouger les pièces blanches
-            free: false,    // On ne peut pas bouger les pièces n'importe où
-            dests: toDests(game), // On calcule les coups légaux
-        },
-        events: {
-            move: onUserMove // Fonction à appeler après un coup du joueur
-        }
-    };
-    
-    const ground = Chessground(boardEl, config);
-
-    // Mise à jour du statut
+    // Update game status text
     function updateStatus() {
         let status = '';
         const moveColor = game.turn() === 'w' ? 'Blancs' : 'Noirs';
 
-        if (game.in_checkmate()) {
+        if (game.isCheckmate()) {
             status = 'Échec et mat !';
-        } else if (game.in_draw()) {
+        } else if (game.isDraw()) {
             status = 'Partie nulle.';
         } else {
             status = 'Au tour des ' + moveColor;
-            if (game.in_check()) {
+            if (game.isCheck()) {
                 status += ' (en échec)';
             }
         }
         statusEl.innerHTML = status;
+        updateFenPgnDisplay(); // Update FEN/PGN along with status
     }
 
-    // Bouton pour une nouvelle partie
-    document.getElementById('new-game-button').addEventListener('click', () => {
-        game.reset();
-        stockfish.postMessage('ucinewgame');
+    // Ask Stockfish for its best move
+    function getBestMove() {
+        if (!game.isGameOver()) {
+            stockfish.postMessage('position fen ' + game.fen());
+            stockfish.postMessage('go depth 2'); // A low depth for quick response
+        }
+    }
+
+    // Handle move from the player
+    function onUserMove(orig, dest) {
+        const playerColor = ground.state.orientation;
+        if (game.turn() !== playerColor[0]) return; // Not player's turn
+
+        const move = game.move({ from: orig, to: dest, promotion: 'q' });
+        if (move === null) return;
+
         ground.set({
             fen: game.fen(),
-            turnColor: 'white',
+            turnColor: game.turn() === 'w' ? 'white' : 'black',
             movable: {
-                color: 'white',
+                color: game.turn() === 'w' ? 'white' : 'black',
                 dests: toDests(game)
             }
         });
         updateStatus();
-    });
 
-    // Initialisation de Stockfish
-    function initStockfish() {
-        stockfish.postMessage('uci');
-        stockfish.postMessage('isready');
-        stockfish.postMessage('setoption name Skill Level value 0');
+        // If game is not over, ask stockfish to play
+        if (!game.isGameOver()) {
+            setTimeout(getBestMove, 500);
+        }
     }
-    
-    initStockfish();
-    updateStatus();
+
+    // Handle message from Stockfish worker
+    stockfish.onmessage = function (event) {
+        const message = event.data;
+        if (message && message.includes('bestmove')) {
+            const bestMove = message.split(' ')[1];
+            game.move({ from: bestMove.substring(0, 2), to: bestMove.substring(2, 4), promotion: 'q' });
+
+            ground.move(bestMove.substring(0, 2), bestMove.substring(2, 4));
+            ground.set({
+                fen: game.fen(),
+                turnColor: game.turn() === 'w' ? 'white' : 'black',
+                movable: {
+                    color: ground.state.orientation,
+                    dests: toDests(game)
+                }
+            });
+            updateStatus();
+        }
+    };
+
+    // --- New Game Setup ---
+    function startNewGame() {
+        const playerColor = document.querySelector('input[name="playerColor"]:checked').value;
+        const elo = eloSlider.value;
+
+        // 1. Configure Stockfish
+        setStockfishStrength(elo);
+        stockfish.postMessage('ucinewgame');
+
+        // 2. Reset internal game state
+        game.reset();
+
+        // 3. Configure Chessground
+        const config = {
+            orientation: playerColor,
+            turnColor: 'white', // Chess always starts with white to move
+            fen: 'start',
+            movable: {
+                color: playerColor,
+                free: false,
+                dests: toDests(game),
+            },
+            events: {
+                move: onUserMove
+            },
+            lastMove: null,
+            check: null
+        };
+
+        if (ground) {
+            ground.set(config);
+        } else {
+            ground = Chessground.Chessground(boardEl, config);
+        }
+
+        // 4. If player is black, make Stockfish play first
+        if (playerColor === 'black') {
+            setTimeout(getBestMove, 500);
+        }
+
+        updateStatus();
+    }
+
+    // --- Event Listeners ---
+    newGameButton.addEventListener('click', startNewGame);
+
+    // --- Initial Load ---
+    startNewGame(); // Start a game on page load
 });
