@@ -1,2 +1,2177 @@
-!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Chessground=t()}(this,function(){"use strict";const e=["white","black"],t=["a","b","c","d","e","f","g","h"],o=["1","2","3","4","5","6","7","8"],n=[...o].reverse(),r=t.flatMap(e=>o.map(t=>e+t)),s=e=>r[8*e[0]+e[1]],i=e=>[e.charCodeAt(0)-97,e.charCodeAt(1)-49],c=r.map(i);const a=()=>{let e;return{start(){e=performance.now()},cancel(){e=void 0},stop(){if(!e)return 0;const t=performance.now()-e;return e=void 0,t}}},l=e=>"white"===e?"black":"white",d=(e,t)=>(e[0]-t[0])**2+(e[1]-t[1])**2,u=(e,t)=>e.role===t.role&&e.color===t.color,p=e=>(t,o)=>[(o?t[0]:7-t[0])*e.width/8,(o?7-t[1]:t[1])*e.height/8],h=(e,t)=>{e.style.transform=`translate(${t[0]}px,${t[1]}px)`},f=(e,t,o=1)=>{e.style.transform=`translate(${t[0]}px,${t[1]}px) scale(${o})`},g=(e,t)=>{e.style.visibility=t?"visible":"hidden"},m=e=>e.clientX||0===e.clientX?[e.clientX,e.clientY]:e.targetTouches?.[0]?[e.targetTouches[0].clientX,e.targetTouches[0].clientY]:void 0,b=e=>2===e.button,v=(e,t)=>{const o=document.createElement(e);return t&&(o.className=t),o};function w(e,t,o){const n=i(e);return t||(n[0]=7-n[0],n[1]=7-n[1]),[o.left+o.width*n[0]/8+o.width/16,o.top+o.height*(7-n[1])/8+o.height/16]}const y=(e,t)=>Math.abs(e-t),k=(e,t,o,n)=>y(e,o)*y(t,n)===2,C=(e,t,o,n)=>e===o!=(t===n),M=(e,t,o,n)=>y(e,o)===y(t,n)&&e!==o,P=(e,t,o,n)=>C(e,t,o,n)||M(e,t,o,n),x=(e,t,o,n)=>1===Math.max(y(e,o),y(t,n)),S=(e,t,o,n,r)=>1===y(e,o)&&n===t+(r?1:-1),A=(e,t,o,n,r)=>{const s=r?1:-1;return e===o&&(n===t+s||n===t+2*s&&(r?t<=1:t>=6))},K=(e,t,o,n)=>{const r=o-e,i=n-t;if(r&&i&&Math.abs(r)!==Math.abs(i))return[];const c=Math.sign(r),a=Math.sign(i),l=[];let d=e+c,u=t+a;for(;d!==o||u!==n;)l.push([d,u]),d+=c,u+=a;return l.map(e=>s(e))},O=e=>{const t=i(e),o=[];return t[0]>0&&o.push([t[0]-1,t[1]]),t[0]<7&&o.push([t[0]+1,t[1]]),o.map(s)},q=(e,t)=>{const o=i(e);return o[1]+=t,s(o)},T=e=>e.friendlies.has(s(e.pos2)),$=(e,t,o)=>K(...e,...t).some(e=>o.has(e)),E=(e,t,o)=>{const n=o.enemies.get(e);if("pawn"!==n?.role)return!1;const r="white"===n.color?1:-1,s=i(e),c=i(t);return A(...s,...c,"white"===n.color)&&!$(s,[c[0],c[1]+r],o.allPieces)},D=(e,t)=>{const o=e.pos2;return[...e.enemies].some(([n,r])=>{const s=i(n);return!t?.includes(r.role)&&("pawn"===r.role&&S(...s,...o,"white"===r.color)||"knight"===r.role&&k(...s,...o)||"bishop"===r.role&&M(...s,...o)||"rook"===r.role&&C(...s,...o)||"queen"===r.role&&P(...s,...o)||"king"===r.role&&x(...s,...o))&&(!["bishop","rook","queen"].includes(r.role)||!$(s,o,e.allPieces))})},L=e=>T(e)&&(W(s(e.pos2),e.friendlies,e.enemies,e.lastMove)||D(e)),W=(e,t,o,n)=>{if(n&&e!==n[1])return!1;const r=i(e),c=t.get(e);return"pawn"===c?.role&&r[1]===("white"===c.color?3:4)&&(!n||2===y(i(n[0])[1],r[1]))&&[1,-1].some(e=>"pawn"===o.get(s([r[0]+e,r[1]]))?.role)},F=e=>{if(e.unrestrictedPremoves)return!0;const t=K(...e.pos1,...e.pos2),o=t.filter(t=>e.enemies.has(t));if(o.length>1)return!1;if(!o.length)return!0;const n=o[0],r=e.enemies.get(n);if(!r||"pawn"!==r.role)return!0;const c="white"===r.color?1:-1,a=q(n,c),l=[...O(a).filter(t=>((e,t,o)=>{const n=o.enemies.get(e);return"pawn"===n?.role&&S(...i(e),...i(t),"white"===n.color)&&(o.friendlies.has(t)||W(q(t,"white"===n.color?-1:1),o.friendlies,o.enemies,o.lastMove))})(n,t,e)),...[a,q(a,c)].filter(t=>t&&E(n,t,e))],d=[...t,s(e.pos1)];return l.some(e=>!d.includes(e))},H=e=>(e=>{if(e.unrestrictedPremoves)return!0;const t=K(...e.pos1,...e.pos2),o=t.filter(t=>e.friendlies.has(t));return!o.length||1===o.length&&W(o[0],e.friendlies,e.enemies,e.lastMove)&&!t.includes(q(o[0],"white"===e.color?-1:1))})(e)&&F(e),N=e=>M(...e.pos1,...e.pos2)&&H(e)&&(e.unrestrictedPremoves||!T(e)||L(e)),B=e=>C(...e.pos1,...e.pos2)&&H(e)&&(e.unrestrictedPremoves||!T(e)||L(e)),j={pawn:e=>{const t="white"===e.color?1:-1;return!(y(e.pos1[0],e.pos2[0])>1)&&(y(e.pos1[0],e.pos2[0])?e.pos2[1]===e.pos1[1]+t&&(!(!e.unrestrictedPremoves&&!(e=>e.enemies.has(s(e.pos2)))(e))||(T(e)?D(e):(e=>[...e.enemies.keys()].some(t=>E(t,s(e.pos2),e)))(e)||W(s([e.pos2[0],e.pos2[1]+t]),e.friendlies,e.enemies,e.lastMove)||D(e,["pawn"]))):A(...e.pos1,...e.pos2,"white"===e.color)&&H({...e,pos2:[e.pos2[0],e.pos2[1]+t]}))},knight:e=>k(...e.pos1,...e.pos2)&&(e.unrestrictedPremoves||!T(e)||L(e)),bishop:N,rook:B,queen:e=>N(e)||B(e),king:e=>x(...e.pos1,...e.pos2)&&(e.unrestrictedPremoves||!T(e)||L(e))||e.canCastle&&e.pos1[1]===e.pos2[1]&&e.pos1[1]===("white"===e.color?0:7)&&(4===e.pos1[0]&&(2===e.pos2[0]&&e.rookFilesFriendlies.includes(0)||6===e.pos2[0]&&e.rookFilesFriendlies.includes(7))||e.rookFilesFriendlies.includes(e.pos2[0]))&&(e.unrestrictedPremoves||K(...e.pos1,e.pos2[0]>e.pos1[0]?7:1,e.pos2[1]).map(t=>e.allPieces.get(t)).every(t=>!t||u(t,{role:"rook",color:e.color})))};function R(e,t){const o=e.pieces,n=e.premovable.castle,r=!!e.premovable.unrestrictedPremoves,a=o.get(t);if(!a||a.color===e.turnColor)return[];const d=a.color,u=new Map([...o].filter(([e,t])=>t.color===d)),p=new Map([...o].filter(([e,t])=>t.color===l(d))),h=i(t),f=j[a.role],g={pos1:h,allPieces:o,friendlies:u,enemies:p,unrestrictedPremoves:r,color:d,canCastle:n,rookFilesFriendlies:Array.from(o).filter(([e,t])=>e[1]===("white"===d?"1":"8")&&t.color===d&&"rook"===t.role).map(([e])=>i(e)[0]),lastMove:e.lastMove};return c.filter(e=>f({...g,pos2:e})).map(s)}function z(e,...t){e&&setTimeout(()=>e(...t),1)}function I(e){e.premovable.current&&(e.premovable.current=void 0,z(e.premovable.events.unset))}function V(e){const t=e.predroppable;t.current&&(t.current=void 0,z(t.events.unset))}function G(e,t,o){const n=e.pieces.get(t),r=e.pieces.get(o);if(t===o||!n)return!1;const c=r&&r.color!==n.color?r:void 0;return o===e.selected&&J(e),z(e.events.move,t,o,c),function(e,t,o){if(!e.autoCastle)return!1;const n=e.pieces.get(t);if(!n||"king"!==n.role)return!1;const r=i(t),c=i(o);if(0!==r[1]&&7!==r[1]||r[1]!==c[1])return!1;4!==r[0]||e.pieces.has(o)||(6===c[0]?o=s([7,c[1]]):2===c[0]&&(o=s([0,c[1]])));const a=e.pieces.get(o);return!(!a||a.color!==n.color||"rook"!==a.role||(e.pieces.delete(t),e.pieces.delete(o),r[0]<c[0]?(e.pieces.set(s([6,c[1]]),n),e.pieces.set(s([5,c[1]]),a)):(e.pieces.set(s([2,c[1]]),n),e.pieces.set(s([3,c[1]]),a)),0))}(e,t,o)||(e.pieces.set(o,n),e.pieces.delete(t)),e.lastMove=[t,o],e.check=void 0,z(e.events.change),c||!0}function X(e,t,o,n){if(e.pieces.has(o)){if(!n)return!1;e.pieces.delete(o)}return z(e.events.dropNewPiece,t,o),e.pieces.set(o,t),e.lastMove=[o],e.check=void 0,z(e.events.change),e.movable.dests=void 0,e.turnColor=l(e.turnColor),!0}function Z(e,t,o){const n=G(e,t,o);return n&&(e.movable.dests=void 0,e.turnColor=l(e.turnColor),e.animation.current=void 0),n}function Y(e,t,o){if(te(e,t,o)){const n=Z(e,t,o);if(n){const r=e.hold.stop();J(e);const s={premove:!1,ctrlKey:e.stats.ctrlKey,holdTime:r};return!0!==n&&(s.captured=n),z(e.movable.events.after,t,o,s),!0}}else if(ne(e,t,o))return function(e,t,o,n){V(e),e.premovable.current=[t,o],z(e.premovable.events.set,t,o,n)}(e,t,o,{ctrlKey:e.stats.ctrlKey}),J(e),!0;return J(e),!1}function _(e,t,o,n){const r=e.pieces.get(t);r&&(function(e,t,o){const n=e.pieces.get(t);return!(!n||t!==o&&e.pieces.has(o)||"both"!==e.movable.color&&(e.movable.color!==n.color||e.turnColor!==n.color))}(e,t,o)||n)?(e.pieces.delete(t),X(e,r,o,n),z(e.movable.events.afterNewPiece,r.role,o,{premove:!1,predrop:!1})):r&&function(e,t,o){const n=e.pieces.get(t),r=e.pieces.get(o);return!!n&&(!r||r.color!==e.movable.color)&&e.predroppable.enabled&&("pawn"!==n.role||"1"!==o[1]&&"8"!==o[1])&&e.movable.color===n.color&&e.turnColor!==n.color}(e,t,o)?function(e,t,o){I(e),e.predroppable.current={role:t,key:o},z(e.predroppable.events.set,t,o)}(e,r.role,o):(I(e),V(e)),e.pieces.delete(t),J(e)}function Q(e,t,o){if(z(e.events.select,t),e.selected){if(e.selected===t&&!e.draggable.enabled)return J(e),void e.hold.cancel();if((e.selectable.enabled||o)&&e.selected!==t&&Y(e,e.selected,t))return void(e.stats.dragged=!1)}(e.selectable.enabled||e.draggable.enabled)&&(ee(e,t)||oe(e,t))&&(U(e,t),e.hold.start())}function U(e,t){e.selected=t,oe(e,t)?e.premovable.customDests||(e.premovable.dests=R(e,t)):e.premovable.dests=void 0}function J(e){e.selected=void 0,e.premovable.dests=void 0,e.hold.cancel()}function ee(e,t){const o=e.pieces.get(t);return!!o&&("both"===e.movable.color||e.movable.color===o.color&&e.turnColor===o.color)}const te=(e,t,o)=>t!==o&&ee(e,t)&&(e.movable.free||!!e.movable.dests?.get(t)?.includes(o));function oe(e,t){const o=e.pieces.get(t);return!!o&&e.premovable.enabled&&e.movable.color===o.color&&e.turnColor!==o.color}const ne=(e,t,o)=>t!==o&&oe(e,t)&&(e.premovable.customDests?.get(t)??R(e,t)).includes(o);function re(e){const t=e.premovable.current;if(!t)return!1;const o=t[0],n=t[1];let r=!1;if(te(e,o,n)){const t=Z(e,o,n);if(t){const s={premove:!0};!0!==t&&(s.captured=t),z(e.movable.events.after,o,n,s),r=!0}}return I(e),r}function se(e){I(e),V(e),J(e)}function ie(e){e.movable.color=e.movable.dests=e.animation.current=void 0,se(e)}function ce(e,t,o){let n=Math.floor(8*(e[0]-o.left)/o.width);t||(n=7-n);let r=7-Math.floor(8*(e[1]-o.top)/o.height);return t||(r=7-r),n>=0&&n<8&&r>=0&&r<8?s([n,r]):void 0}const ae=e=>"white"===e.orientation,le="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",de={p:"pawn",r:"rook",n:"knight",b:"bishop",q:"queen",k:"king"},ue={pawn:"p",rook:"r",knight:"n",bishop:"b",queen:"q",king:"k"};function pe(e){"start"===e&&(e=le);const t=new Map;let o=7,n=0;for(const r of e)switch(r){case" ":case"[":return t;case"/":if(--o,o<0)return t;n=0;break;case"~":{const e=t.get(s([n-1,o]));e&&(e.promoted=!0);break}default:{const e=r.charCodeAt(0);if(e<57)n+=e-48;else{const e=r.toLowerCase(),i=s([n,o]);i&&t.set(i,{role:de[e],color:r===e?"black":"white"}),++n}}}return t}function he(e,t){t.animation&&(ge(e.animation,t.animation),(e.animation.duration||0)<70&&(e.animation.enabled=!1))}function fe(e,t){if(t.movable?.dests&&(e.movable.dests=void 0),t.drawable?.autoShapes&&(e.drawable.autoShapes=[]),ge(e,t),t.fen&&(e.pieces=pe(t.fen),e.drawable.shapes=t.drawable?.shapes||[]),"check"in t&&function(e,t){if(e.check=void 0,!0===t&&(t=e.turnColor),t)for(const[o,n]of e.pieces)"king"===n.role&&n.color===t&&(e.check=o)}(e,t.check||!1),"lastMove"in t&&!t.lastMove?e.lastMove=void 0:t.lastMove&&(e.lastMove=t.lastMove),e.selected&&U(e,e.selected),he(e,t),!e.movable.rookCastle&&e.movable.dests){const t="white"===e.movable.color?"1":"8",o="e"+t,n=e.movable.dests.get(o),r=e.pieces.get(o);if(!n||!r||"king"!==r.role)return;e.movable.dests.set(o,n.filter(e=>!(e==="a"+t&&n.includes("c"+t)||e==="h"+t&&n.includes("g"+t))))}}function ge(e,t){for(const o in t)"__proto__"!==o&&"constructor"!==o&&Object.prototype.hasOwnProperty.call(t,o)&&(Object.prototype.hasOwnProperty.call(e,o)&&me(e[o])&&me(t[o])?ge(e[o],t[o]):e[o]=t[o])}function me(e){if("object"!=typeof e||null===e)return!1;const t=Object.getPrototypeOf(e);return t===Object.prototype||null===t}const be=(e,t)=>t.animation.enabled?function(e,t){const o=new Map(t.pieces),n=e(t),s=function(e,t){const o=new Map,n=[],s=new Map,i=[],c=[],a=new Map;let l,d,p;for(const[t,o]of e)a.set(t,we(t,o));for(const e of r)l=t.pieces.get(e),d=a.get(e),l?d?u(l,d.piece)||(i.push(d),c.push(we(e,l))):c.push(we(e,l)):d&&i.push(d);for(const e of c)d=ye(e,i.filter(t=>u(e.piece,t.piece))),d&&(p=[d.pos[0]-e.pos[0],d.pos[1]-e.pos[1]],o.set(e.key,p.concat(p)),n.push(d.key));for(const e of i)n.includes(e.key)||s.set(e.key,e.piece);return{anims:o,fadings:s}}(o,t);if(s.anims.size||s.fadings.size){const e=t.animation.current&&t.animation.current.start;t.animation.current={start:performance.now(),frequency:1/t.animation.duration,plan:s},e||ke(t,performance.now())}else t.dom.redraw();return n}(e,t):ve(e,t);function ve(e,t){const o=e(t);return t.dom.redraw(),o}const we=(e,t)=>({key:e,pos:i(e),piece:t}),ye=(e,t)=>t.sort((t,o)=>d(e.pos,t.pos)-d(e.pos,o.pos))[0];function ke(e,t){const o=e.animation.current;if(void 0===o)return void(e.dom.destroyed||e.dom.redrawNow());const n=1-(t-o.start)*o.frequency;if(n<=0)e.animation.current=void 0,e.dom.redrawNow();else{const t=Ce(n);for(const e of o.plan.anims.values())e[2]=e[0]*t,e[3]=e[1]*t;e.dom.redrawNow(!0),requestAnimationFrame((t=performance.now())=>ke(e,t))}}const Ce=e=>e<.5?4*e*e*e:(e-1)*(2*e-2)*(2*e-2)+1,Me=["green","red","blue","yellow"];function Pe(e,t){if(t.touches&&t.touches.length>1)return;t.stopPropagation(),t.preventDefault(),t.ctrlKey?J(e):se(e);const o=m(t),n=ce(o,ae(e),e.dom.bounds());n&&(e.drawable.current={orig:n,pos:o,brush:Oe(t),snapToValidMove:e.drawable.defaultSnapToValidMove},xe(e))}function xe(e){requestAnimationFrame(()=>{const t=e.drawable.current;if(t){const o=ce(t.pos,ae(e),e.dom.bounds());o||(t.snapToValidMove=!1);const n=t.snapToValidMove?function(e,t,o,n){const r=i(e),a=c.filter(e=>{return o=e,(t=r)[0]===o[0]&&t[1]===o[1]||P(r[0],r[1],e[0],e[1])||k(r[0],r[1],e[0],e[1]);var t,o}),l=a.map(e=>w(s(e),o,n)).map(e=>d(t,e)),[,u]=l.reduce((e,t,o)=>e[0]<t?e:[t,o],[l[0],0]);return s(a[u])}(t.orig,t.pos,ae(e),e.dom.bounds()):o;n!==t.mouseSq&&(t.mouseSq=n,t.dest=n!==t.orig?n:void 0,e.dom.redrawNow()),xe(e)}})}function Se(e,t){e.drawable.current&&(e.drawable.current.pos=m(t))}function Ae(e){const t=e.drawable.current;t&&(t.mouseSq&&function(e,t){const o=e=>e.orig===t.orig&&e.dest===t.dest,n=e.shapes.find(o);n&&(e.shapes=e.shapes.filter(e=>!o(e)));n&&n.brush===t.brush||e.shapes.push({orig:t.orig,dest:t.dest,brush:t.brush});qe(e)}(e.drawable,t),Ke(e))}function Ke(e){e.drawable.current&&(e.drawable.current=void 0,e.dom.redraw())}function Oe(e){const t=(e.shiftKey||e.ctrlKey)&&b(e),o=e.altKey||e.metaKey||e.getModifierState?.("AltGraph");return Me[(t?1:0)+(o?2:0)]}function qe(e){e.onChange&&e.onChange(e.shapes)}function Te(e,t){if(!e.trustAllEvents&&!t.isTrusted)return;if(void 0!==t.buttons&&t.buttons>1)return;if(t.touches&&t.touches.length>1)return;const o=e.dom.bounds(),n=m(t),r=ce(n,ae(e),o);if(!r)return;const s=e.pieces.get(r),c=e.selected;var a;if(c||!e.drawable.enabled||!e.drawable.eraseOnClick&&s&&s.color===e.turnColor||(a=e).drawable.shapes.length&&(a.drawable.shapes=[],a.dom.redraw(),qe(a.drawable)),!1!==t.cancelable&&(!t.touches||e.blockTouchScroll||s||c||function(e,t){const o=ae(e),n=e.dom.bounds(),r=2*Math.pow(e.touchIgnoreRadius*n.width/16,2);for(const s of e.pieces.keys()){const e=w(s,o,n);if(d(e,t)<=r)return!0}return!1}(e,n)))t.preventDefault();else if(t.touches)return;const l=!!e.premovable.current,u=!!e.predroppable.current;e.stats.ctrlKey=t.ctrlKey,e.selected&&te(e,e.selected,r)?be(e=>Q(e,r),e):Q(e,r);const f=e.selected===r,b=Fe(e,r);if(s&&b&&f&&function(e,t){const o=e.pieces.get(t);return!!o&&e.draggable.enabled&&("both"===e.movable.color||e.movable.color===o.color&&(e.turnColor===o.color||e.premovable.enabled))}(e,r)){e.draggable.current={orig:r,piece:s,origPos:n,pos:n,started:e.draggable.autoDistance&&e.stats.dragged,element:b,previouslySelected:c,originTarget:t.target,keyHasChanged:!1},b.cgDragging=!0,b.classList.add("dragging");const a=e.dom.elements.ghost;a&&(a.className=`ghost ${s.color} ${s.role}`,h(a,p(o)(i(r),ae(e))),g(a,!0)),$e(e)}else l&&I(e),u&&V(e);e.dom.redraw()}function $e(e){requestAnimationFrame(()=>{const t=e.draggable.current;if(!t)return;e.animation.current?.plan.anims.has(t.orig)&&(e.animation.current=void 0);const o=e.pieces.get(t.orig);if(o&&u(o,t.piece)){if(!t.started&&d(t.pos,t.origPos)>=Math.pow(e.draggable.distance,2)&&(t.started=!0),t.started){if("function"==typeof t.element){const e=t.element();if(!e)return;e.cgDragging=!0,e.classList.add("dragging"),t.element=e}const o=e.dom.bounds();h(t.element,[t.pos[0]-o.left-o.width/16,t.pos[1]-o.top-o.height/16]),t.keyHasChanged||(t.keyHasChanged=t.orig!==ce(t.pos,ae(e),o))}}else Le(e);$e(e)})}function Ee(e,t){e.draggable.current&&(!t.touches||t.touches.length<2)&&(e.draggable.current.pos=m(t))}function De(e,t){const o=e.draggable.current;if(!o)return;if("touchend"===t.type&&!1!==t.cancelable&&t.preventDefault(),"touchend"===t.type&&o.originTarget!==t.target&&!o.newPiece)return void(e.draggable.current=void 0);I(e),V(e);const n=ce(m(t)||o.pos,ae(e),e.dom.bounds());n&&o.started&&o.orig!==n?o.newPiece?_(e,o.orig,n,o.force):(e.stats.ctrlKey=t.ctrlKey,Y(e,o.orig,n)&&(e.stats.dragged=!0)):o.newPiece?e.pieces.delete(o.orig):e.draggable.deleteOnDropOff&&!n&&(e.pieces.delete(o.orig),z(e.events.change)),(o.orig!==o.previouslySelected&&!o.keyHasChanged||o.orig!==n&&n)&&e.selectable.enabled||J(e),We(e),e.draggable.current=void 0,e.dom.redraw()}function Le(e){const t=e.draggable.current;t&&(t.newPiece&&e.pieces.delete(t.orig),e.draggable.current=void 0,J(e),We(e),e.dom.redraw())}function We(e){const t=e.dom.elements;t.ghost&&g(t.ghost,!1)}function Fe(e,t){let o=e.dom.elements.board.firstChild;for(;o;){if(o.cgKey===t&&"PIECE"===o.tagName)return o;o=o.nextSibling}}function He(e,t){e.exploding&&(t?e.exploding.stage=t:e.exploding=void 0,e.dom.redraw())}function Ne(e,o){function r(){!function(e){e.orientation=l(e.orientation),e.animation.current=e.draggable.current=e.selected=void 0}(e),o()}return{set(t){t.orientation&&t.orientation!==e.orientation&&r(),he(e,t),(t.fen?be:ve)(e=>fe(e,t),e)},state:e,getFen:()=>{return o=e.pieces,n.map(e=>t.map(t=>{const n=o.get(t+e);if(n){let e=ue[n.role];return"white"===n.color&&(e=e.toUpperCase()),n.promoted&&(e+="~"),e}return"1"}).join("")).join("/").replace(/1{2,}/g,e=>e.length.toString());var o},toggleOrientation:r,setPieces(t){be(e=>function(e,t){for(const[o,n]of t)n?e.pieces.set(o,n):e.pieces.delete(o)}(e,t),e)},selectSquare(t,o){t?be(e=>Q(e,t,o),e):e.selected&&(J(e),e.dom.redraw())},move(t,o){be(e=>G(e,t,o),e)},newPiece(t,o){be(e=>X(e,t,o),e)},playPremove(){if(e.premovable.current){if(be(re,e))return!0;e.dom.redraw()}return!1},playPredrop(t){if(e.predroppable.current){const o=function(e,t){const o=e.predroppable.current;let n=!1;if(!o)return!1;t(o)&&X(e,{role:o.role,color:e.movable.color},o.key)&&(z(e.movable.events.afterNewPiece,o.role,o.key,{premove:!1,predrop:!0}),n=!0);return V(e),n}(e,t);return e.dom.redraw(),o}return!1},cancelPremove(){ve(I,e)},cancelPredrop(){ve(V,e)},cancelMove(){ve(e=>{se(e),Le(e)},e)},stop(){ve(e=>{ie(e),Le(e)},e)},explode(t){!function(e,t){e.exploding={stage:1,keys:t},e.dom.redraw(),setTimeout(()=>{He(e,2),setTimeout(()=>He(e,void 0),120)},120)}(e,t)},setAutoShapes(t){ve(e=>e.drawable.autoShapes=t,e)},setShapes(t){ve(e=>e.drawable.shapes=t.slice(),e)},getKeyAtDomPos:t=>ce(t,ae(e),e.dom.bounds()),redrawAll:o,dragNewPiece(t,o,n){!function(e,t,o,n){const r="a0";e.pieces.set(r,t),e.dom.redraw();const s=m(o);e.draggable.current={orig:r,piece:t,origPos:s,pos:s,started:!0,element:()=>Fe(e,r),originTarget:o.target,newPiece:!0,force:!!n,keyHasChanged:!1},$e(e)}(e,t,o,n)},destroy(){ie(e),e.dom.unbind&&e.dom.unbind(),e.dom.destroyed=!0}}}function Be(e,t){const o=e.drawable,n=o.current,r=n&&n.mouseSq?n:void 0,s=new Map,c=e.dom.bounds(),a=o.autoShapes.filter(e=>!e.piece);for(const t of o.shapes.concat(a).concat(r?[r]:[])){if(!t.dest)continue;const o=s.get(t.dest)??new Set,n=et(Ge(i(t.orig),e.orientation),c),r=et(Ge(i(t.dest),e.orientation),c);o.add(tt(n,r)),s.set(t.dest,o)}const l=[];for(const e of o.shapes.concat(a))l.push({shape:e,current:!1,hash:je(e,Xe(e.dest,s),!1,c)});r&&l.push({shape:r,current:!0,hash:je(r,Xe(r.dest,s),!0,c)});const d=l.map(e=>e.hash).join(";");d!==e.drawable.prevSvgHash&&(e.drawable.prevSvgHash=d,function(e,t,o){for(const n of[o.shapes,o.shapesBelow]){const r=n.querySelector("defs"),s=t.filter(e=>n===o.shapesBelow==!!e.shape.below),i=new Map;for(const t of s.filter(e=>e.shape.dest&&e.shape.brush)){const o=_e(e.brushes[t.shape.brush],t.shape.modifiers),{key:n,color:r}=Ue(t.shape);n&&r&&i.set(n,{key:n,color:r,opacity:1,lineWidth:1}),i.set(o.key,o)}const c=new Set;let a=r.firstElementChild;for(;a;)c.add(a.getAttribute("cgKey")),a=a.nextElementSibling;for(const[e,t]of i.entries())c.has(e)||r.appendChild(Ie(t))}}(o,l,t),function(e,t,o){for(const[n,r]of[[t.shapes,t.custom],[t.shapesBelow,t.customBelow]]){const[s,i]=[n,r].map(e=>e.querySelector("g")),c=e.filter(e=>n===t.shapesBelow==!!e.shape.below),a=new Map;for(const e of c)a.set(e.hash,!1);for(const e of[s,i]){const t=[];let o,n=e.firstElementChild;for(;n;)o=n.getAttribute("cgHash"),a.has(o)?a.set(o,!0):t.push(n),n=n.nextElementSibling;for(const o of t)e.removeChild(o)}for(const e of c.filter(e=>!a.get(e.hash)))for(const t of o(e))t.isCustom?i.appendChild(t.el):s.appendChild(t.el)}}(l,t,t=>function(e,{shape:t,current:o,hash:n},r,s,c){const a=et(Ge(i(t.orig),e.orientation),c),l=t.dest?et(Ge(i(t.dest),e.orientation),c):a,d=t.brush&&_e(r[t.brush],t.modifiers),u=s.get(t.dest),p=[];if(d){const e=Ye(Ze("g"),{cgHash:n});p.push({el:e}),a[0]!==l[0]||a[1]!==l[1]?e.appendChild(function(e,t,o,n,r,s){function i(i){const c=function(e){return(e?20:10)/64}(s&&!r),a=n[0]-o[0],l=n[1]-o[1],d=Math.atan2(l,a),u=Math.cos(d)*c,p=Math.sin(d)*c,h=Ue(e);return Ye(Ze("line"),{stroke:i?h.color:t.color,"stroke-width":Qe(t,r)*(i?1.14:1),"stroke-linecap":"round","marker-end":`url(#arrowhead-${i?h.key:t.key})`,opacity:e.modifiers?.hilite?1:Je(t,r),x1:o[0],y1:o[1],x2:n[0]-u,y2:n[1]-p})}if(!e.modifiers?.hilite)return i(!1);const c=Ye(Ze("g"),{opacity:t.opacity}),a=Ye(Ze("g"),{filter:"url(#cg-filter-blur)"});return a.appendChild(function(e,t){const o={from:[Math.floor(Math.min(e[0],t[0])),Math.floor(Math.min(e[1],t[1]))],to:[Math.ceil(Math.max(e[0],t[0])),Math.ceil(Math.max(e[1],t[1]))]};return Ye(Ze("rect"),{x:o.from[0],y:o.from[1],width:o.to[0]-o.from[0],height:o.to[1]-o.from[1],fill:"none",stroke:"none"})}(o,n)),a.appendChild(i(!0)),c.appendChild(a),c.appendChild(i(!1)),c}(t,d,a,l,o,Xe(t.dest,s))):e.appendChild(function(e,t,o,n){const r=[3/64,4/64],s=(n.width+n.height)/(4*Math.max(n.width,n.height));return Ye(Ze("circle"),{stroke:e.color,"stroke-width":r[o?0:1],fill:"none",opacity:Je(e,o),cx:t[0],cy:t[1],r:s-r[1]/2})}(r[t.brush],a,o,c))}if(t.label){const e=t.label;e.fill??(e.fill=t.brush&&r[t.brush].color);const o=t.brush?void 0:"tr";p.push({el:Ve(e,n,a,l,u,o),isCustom:!0})}if(t.customSvg){const e=t.customSvg.center??"orig",[o,r]="label"===e?ot(a,l,u).map(e=>e-.5):"dest"===e?l:a,s=Ye(Ze("g"),{transform:`translate(${o},${r})`,cgHash:n});s.innerHTML=`<svg width="1" height="1" viewBox="0 0 100 100">${t.customSvg.html}</svg>`,p.push({el:s,isCustom:!0})}return p}(e,t,o.brushes,s,c)))}function je({orig:e,dest:t,brush:o,piece:n,modifiers:r,customSvg:s,label:i,below:c},a,l,d){return[d.width,d.height,l,e,t,o,a&&"-",n&&Re(n),r&&(u=r,[u.lineWidth,u.hilite].filter(e=>e).join(",")),s&&`custom-${ze(s.html)},${s.center?.[0]??"o"}`,i&&`label-${ze(i.text)}`,c&&"below"].filter(e=>e).join(",");var u}function Re(e){return[e.color,e.role,e.scale].filter(e=>e).join(",")}function ze(e){let t=0;for(let o=0;o<e.length;o++)t=(t<<5)-t+e.charCodeAt(o)>>>0;return t.toString()}function Ie(e){const t=Ye(Ze("marker"),{id:"arrowhead-"+e.key,orient:"auto",overflow:"visible",markerWidth:4,markerHeight:4,refX:e.key.startsWith("hilite")?1.86:2.05,refY:2});return t.appendChild(Ye(Ze("path"),{d:"M0,0 V4 L3,2 Z",fill:e.color})),t.setAttribute("cgKey",e.key),t}function Ve(e,t,o,n,r,s){const i=.4*.75**e.text.length,c=ot(o,n,r),a="tr"===s?.4:0,l=Ye(Ze("g"),{transform:`translate(${c[0]+a},${c[1]-a})`,cgHash:t});l.appendChild(Ye(Ze("circle"),{r:.2,"fill-opacity":s?1:.8,"stroke-opacity":s?1:.7,"stroke-width":.03,fill:e.fill??"#666",stroke:"white"}));const d=Ye(Ze("text"),{"font-size":i,"font-family":"Noto Sans","text-anchor":"middle",fill:"white",y:.13*.75**e.text.length});return d.innerHTML=e.text,l.appendChild(d),l}function Ge(e,t){return"white"===t?e:[7-e[0],7-e[1]]}function Xe(e,t){return!0===(e&&t.has(e)&&t.get(e).size>1)}function Ze(e){return document.createElementNS("http://www.w3.org/2000/svg",e)}function Ye(e,t){for(const o in t)Object.prototype.hasOwnProperty.call(t,o)&&e.setAttribute(o,t[o]);return e}function _e(e,t){return t?{color:e.color,opacity:Math.round(10*e.opacity)/10,lineWidth:Math.round(t.lineWidth||e.lineWidth),key:[e.key,t.lineWidth].filter(e=>e).join("")}:e}function Qe(e,t){return(e.lineWidth||10)*(t?.85:1)/64}function Ue(e){const t=e.modifiers?.hilite;return{key:t&&`hilite-${t.replace("#","")}`,color:t}}function Je(e,t){return(e.opacity||1)*(t?.9:1)}function et(e,t){const o=Math.min(1,t.width/t.height),n=Math.min(1,t.height/t.width);return[(e[0]-3.5)*o,(3.5-e[1])*n]}function tt(e,t,o=!0){const n=Math.atan2(t[1]-e[1],t[0]-e[0])+Math.PI;return o?(Math.round(8*n/Math.PI)+16)%16:n}function ot(e,t,o){let n=function(e,t){return Math.sqrt([e[0]-t[0],e[1]-t[1]].reduce((e,t)=>e+t*t,0))}(e,t);const r=tt(e,t,!1);if(o&&(n-=33/64,o.size>1)){n-=10/64;const r=tt(e,t);(o.has((r+1)%16)||o.has((r+15)%16))&&1&r&&(n-=.4)}return[e[0]-Math.cos(r)*n,e[1]-Math.sin(r)*n].map(e=>e+.5)}function nt(e,t){const o=Ye(Ze("svg"),{class:e,viewBox:t?"-4 -4 8 8":"-3.5 -3.5 8 8",preserveAspectRatio:"xMidYMid slice"});return t&&o.appendChild(function(){const e=Ze("defs"),t=Ye(Ze("filter"),{id:"cg-filter-blur"});return t.appendChild(Ye(Ze("feGaussianBlur"),{stdDeviation:"0.013"})),e.appendChild(t),e}()),o.appendChild(Ze("g")),o}function rt(e,t){const o=v("coords",t);let n;for(const t of e)n=v("coord"),n.textContent=t,o.appendChild(n);return o}function st(e,t,o,n){return e.addEventListener(t,o,n),()=>e.removeEventListener(t,o,n)}const it=e=>t=>{e.draggable.current?Le(e):e.drawable.current?Ke(e):t.shiftKey||b(t)?e.drawable.enabled&&Pe(e,t):e.viewOnly||(e.dropmode.active?function(e,t){if(!e.dropmode.active)return;I(e),V(e);const o=e.dropmode.piece;if(o){e.pieces.set("a0",o);const n=m(t),r=n&&ce(n,ae(e),e.dom.bounds());r&&_(e,"a0",r)}e.dom.redraw()}(e,t):Te(e,t))},ct=(e,t,o)=>n=>{e.drawable.current?e.drawable.enabled&&o(e,n):e.viewOnly||t(e,n)};function at(e){const t=ae(e),o=p(e.dom.bounds()),n=e.dom.elements.board,r=e.pieces,s=e.animation.current,c=s?s.plan.anims:new Map,a=s?s.plan.fadings:new Map,l=e.draggable.current,d=function(e){const t=new Map;if(e.lastMove&&e.highlight.lastMove)for(const o of e.lastMove)gt(t,o,"last-move");e.check&&e.highlight.check&&gt(t,e.check,"check");if(e.selected&&(gt(t,e.selected,"selected"),e.movable.showDests)){const o=e.movable.dests?.get(e.selected);if(o)for(const n of o)gt(t,n,"move-dest"+(e.pieces.has(n)?" oc":""));const n=e.premovable.customDests?.get(e.selected)??e.premovable.dests;if(n)for(const o of n)gt(t,o,"premove-dest"+(e.pieces.has(o)?" oc":""))}const o=e.premovable.current;if(o)for(const e of o)gt(t,e,"current-premove");else e.predroppable.current&&gt(t,e.predroppable.current.key,"current-premove");const n=e.exploding;if(n)for(const e of n.keys)gt(t,e,"exploding"+n.stage);e.highlight.custom&&e.highlight.custom.forEach((e,o)=>{gt(t,o,e)});return t}(e),u=new Set,f=new Set,g=new Map,m=new Map;let b,w,y,k,C,M,P,x,S,A;for(w=n.firstChild;w;){if(b=w.cgKey,dt(w))if(y=r.get(b),C=c.get(b),M=a.get(b),k=w.cgPiece,!w.cgDragging||l&&l.orig===b||(w.classList.remove("dragging"),h(w,o(i(b),t)),w.cgDragging=!1),!M&&w.cgFading&&(w.cgFading=!1,w.classList.remove("fading")),y){if(C&&w.cgAnimating&&k===ft(y)){const e=i(b);e[0]+=C[2],e[1]+=C[3],w.classList.add("anim"),h(w,o(e,t))}else w.cgAnimating&&(w.cgAnimating=!1,w.classList.remove("anim"),h(w,o(i(b),t)),e.addPieceZIndex&&(w.style.zIndex=ht(i(b),t)));k!==ft(y)||M&&w.cgFading?M&&k===ft(M)?(w.classList.add("fading"),w.cgFading=!0):mt(g,k,w):u.add(b)}else mt(g,k,w);else if(ut(w)){const e=w.className;d.get(b)===e?f.add(b):mt(m,e,w)}w=w.nextSibling}for(const[e,r]of d)if(!f.has(e)){S=m.get(r),A=S&&S.pop();const s=o(i(e),t);if(A)A.cgKey=e,h(A,s);else{const t=v("square",r);t.cgKey=e,h(t,s),n.insertBefore(t,n.firstChild)}}for(const[s,a]of r)if(C=c.get(s),!u.has(s))if(P=g.get(ft(a)),x=P&&P.pop(),x){x.cgKey=s,x.cgFading&&(x.classList.remove("fading"),x.cgFading=!1);const n=i(s);e.addPieceZIndex&&(x.style.zIndex=ht(n,t)),C&&(x.cgAnimating=!0,x.classList.add("anim"),n[0]+=C[2],n[1]+=C[3]),h(x,o(n,t))}else{const r=ft(a),c=v("piece",r),l=i(s);c.cgPiece=r,c.cgKey=s,C&&(c.cgAnimating=!0,l[0]+=C[2],l[1]+=C[3]),h(c,o(l,t)),e.addPieceZIndex&&(c.style.zIndex=ht(l,t)),n.appendChild(c)}for(const t of g.values())pt(e,t);for(const t of m.values())pt(e,t)}function lt(e){const t=e.dom.elements.wrap.getBoundingClientRect(),o=e.dom.elements.container,n=t.height/t.width,r=8*Math.floor(t.width*window.devicePixelRatio/8)/window.devicePixelRatio,s=r*n;o.style.width=r+"px",o.style.height=s+"px",e.dom.bounds.clear(),e.addDimensionsCssVarsTo?.style.setProperty("---cg-width",r+"px"),e.addDimensionsCssVarsTo?.style.setProperty("---cg-height",s+"px")}const dt=e=>"PIECE"===e.tagName,ut=e=>"SQUARE"===e.tagName;function pt(e,t){for(const o of t)e.dom.elements.board.removeChild(o)}function ht(e,t){const o=e[1];return`${t?10-o:3+o}`}const ft=e=>`${e.color} ${e.role}`;function gt(e,t,o){const n=e.get(t);n?e.set(t,`${n} ${o}`):e.set(t,o)}function mt(e,t,o){const n=e.get(t);n?n.push(o):e.set(t,[o])}function bt(e,t){!function(e,t,o){const n=new Map,r=[];for(const t of e)n.set(t.hash,!1);let s,i=t.firstElementChild;for(;i;)s=i.getAttribute("cgHash"),n.has(s)?n.set(s,!0):r.push(i),i=i.nextElementSibling;for(const e of r)t.removeChild(e);for(const r of e)n.get(r.hash)||t.appendChild(o(r))}(e.drawable.autoShapes.filter(e=>e.piece).map(e=>({shape:e,hash:vt(e),current:!1})),t,t=>function(e,{shape:t,hash:o},n){const r=t.orig,s=t.piece?.role,c=t.piece?.color,a=t.piece?.scale,l=v("piece",`${s} ${c}`);return l.setAttribute("cgHash",o),l.cgKey=r,l.cgScale=a,f(l,p(n)(i(r),ae(e)),a),l}(e,t,e.dom.bounds()))}const vt=e=>[e.orig,e.piece?.role,e.piece?.color,e.piece?.scale].join(",");function wt(e){let t=!1;return()=>{t||(t=!0,requestAnimationFrame(()=>{e(),t=!1}))}}return function(n,r){const s={pieces:pe(le),orientation:"white",turnColor:"white",coordinates:!0,coordinatesOnSquares:!1,ranksPosition:"right",autoCastle:!0,viewOnly:!1,disableContextMenu:!1,addPieceZIndex:!1,blockTouchScroll:!1,touchIgnoreRadius:1,pieceKey:!1,trustAllEvents:!1,highlight:{lastMove:!0,check:!0},animation:{enabled:!0,duration:200},movable:{free:!0,color:"both",showDests:!0,events:{},rookCastle:!0},premovable:{enabled:!0,showDests:!0,castle:!0,events:{}},predroppable:{enabled:!1,events:{}},draggable:{enabled:!0,distance:3,autoDistance:!0,showGhost:!0,deleteOnDropOff:!1},dropmode:{active:!1},selectable:{enabled:!0},stats:{dragged:!("ontouchstart"in window)},events:{},drawable:{enabled:!0,visible:!0,defaultSnapToValidMove:!0,eraseOnClick:!0,shapes:[],autoShapes:[],brushes:{green:{key:"g",color:"#15781B",opacity:1,lineWidth:10},red:{key:"r",color:"#882020",opacity:1,lineWidth:10},blue:{key:"b",color:"#003088",opacity:1,lineWidth:10},yellow:{key:"y",color:"#e68f00",opacity:1,lineWidth:10},paleBlue:{key:"pb",color:"#003088",opacity:.4,lineWidth:15},paleGreen:{key:"pg",color:"#15781B",opacity:.4,lineWidth:15},paleRed:{key:"pr",color:"#882020",opacity:.4,lineWidth:15},paleGrey:{key:"pgr",color:"#4a4a4a",opacity:.35,lineWidth:15},purple:{key:"purple",color:"#68217a",opacity:.65,lineWidth:10},pink:{key:"pink",color:"#ee2080",opacity:.5,lineWidth:10},white:{key:"white",color:"white",opacity:1,lineWidth:10},paleWhite:{key:"pwhite",color:"white",opacity:.6,lineWidth:10}},prevSvgHash:""},hold:a()};function c(){const r="dom"in s?s.dom.unbind:void 0,c=function(n,r){n.innerHTML="",n.classList.add("cg-wrap");for(const t of e)n.classList.toggle("orientation-"+t,r.orientation===t);n.classList.toggle("manipulable",!r.viewOnly);const s=v("cg-container");n.appendChild(s);const i=v("cg-board");let c,a,l,d,u,p;if(s.appendChild(i),r.drawable.visible&&([c,a]=["cg-shapes-below","cg-shapes"].map(e=>nt(e,!0)),[l,d]=["cg-custom-below","cg-custom-svgs"].map(e=>nt(e,!1)),u=v("cg-auto-pieces"),s.appendChild(c),s.appendChild(l),s.appendChild(a),s.appendChild(d),s.appendChild(u)),r.coordinates){const e="black"===r.orientation?" black":"",n="left"===r.ranksPosition?" left":"";if(r.coordinatesOnSquares){const i="white"===r.orientation?e=>e+1:e=>8-e;t.forEach((t,r)=>s.appendChild(rt(o.map(e=>t+e),"squares rank"+i(r)+e+n)))}else s.appendChild(rt(o,"ranks"+e+n)),s.appendChild(rt(t,"files"+e))}return r.draggable.enabled&&r.draggable.showGhost&&(p=v("piece","ghost"),g(p,!1),s.appendChild(p)),{board:i,container:s,wrap:n,ghost:p,shapes:a,shapesBelow:c,custom:d,customBelow:l,autoPieces:u}}(n,s),a=function(e){let t;const o=()=>(void 0===t&&(t=e()),t);return o.clear=()=>{t=void 0},o}(()=>c.board.getBoundingClientRect()),l=e=>{at(u),c.autoPieces&&bt(u,c.autoPieces),!e&&c.shapes&&Be(u,c)},d=()=>{lt(u),function(e){const t=ae(e),o=p(e.dom.bounds());let n=e.dom.elements.board.firstChild;for(;n;)(dt(n)&&!n.cgAnimating||ut(n))&&h(n,o(i(n.cgKey),t)),n=n.nextSibling}(u),c.autoPieces&&function(e){const t=ae(e),o=p(e.dom.bounds());let n=e.dom.elements.autoPieces?.firstChild;for(;n;)f(n,o(i(n.cgKey),t),n.cgScale),n=n.nextSibling}(u)},u=s;return u.dom={elements:c,bounds:a,redraw:wt(l),redrawNow:l,unbind:r},u.drawable.prevSvgHash="",lt(u),l(!1),function(e,t){const o=e.dom.elements.board;if("ResizeObserver"in window&&new ResizeObserver(t).observe(e.dom.elements.wrap),(e.disableContextMenu||e.drawable.enabled)&&o.addEventListener("contextmenu",e=>e.preventDefault()),e.viewOnly)return;const n=it(e);o.addEventListener("touchstart",n,{passive:!1}),o.addEventListener("mousedown",n,{passive:!1})}(u,d),r||(u.dom.unbind=function(e,t){const o=[];if("ResizeObserver"in window||o.push(st(document.body,"chessground.resize",t)),!e.viewOnly){const t=ct(e,Ee,Se),n=ct(e,De,Ae);for(const e of["touchmove","mousemove"])o.push(st(document,e,t));for(const e of["touchend","mouseup"])o.push(st(document,e,n));const r=()=>e.dom.bounds.clear();o.push(st(document,"scroll",r,{capture:!0,passive:!0})),o.push(st(window,"resize",r,{passive:!0}))}return()=>o.forEach(e=>e())}(u,d)),u.events.insert&&u.events.insert(c),u}return fe(s,r||{}),Ne(c(),c)}});
-//# sourceMappingURL=chessground.umd.js.map
+(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+    typeof define === 'function' && define.amd ? define(['exports'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Chessground = {}));
+})(this, (function (exports) { 'use strict';
+
+    const colors = ['white', 'black'];
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const ranks = ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+    const invRanks = [...ranks].reverse();
+    const allKeys = files.flatMap(f => ranks.map(r => (f + r)));
+    const pos2key = (pos) => allKeys[8 * pos[0] + pos[1]];
+    const key2pos = (k) => [k.charCodeAt(0) - 97, k.charCodeAt(1) - 49];
+    const allPos = allKeys.map(key2pos);
+    function memo(f) {
+        let v;
+        const ret = () => {
+            if (v === undefined)
+                v = f();
+            return v;
+        };
+        ret.clear = () => {
+            v = undefined;
+        };
+        return ret;
+    }
+    const timer = () => {
+        let startAt;
+        return {
+            start() {
+                startAt = performance.now();
+            },
+            cancel() {
+                startAt = undefined;
+            },
+            stop() {
+                if (!startAt)
+                    return 0;
+                const time = performance.now() - startAt;
+                startAt = undefined;
+                return time;
+            },
+        };
+    };
+    const opposite = (c) => (c === 'white' ? 'black' : 'white');
+    const distanceSq = (pos1, pos2) => (pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2;
+    const samePiece = (p1, p2) => p1.role === p2.role && p1.color === p2.color;
+    const samePos = (p1, p2) => p1[0] === p2[0] && p1[1] === p2[1];
+    const posToTranslate = (bounds) => (pos, asWhite) => [
+        ((asWhite ? pos[0] : 7 - pos[0]) * bounds.width) / 8,
+        ((asWhite ? 7 - pos[1] : pos[1]) * bounds.height) / 8,
+    ];
+    const translate = (el, pos) => {
+        el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`;
+    };
+    const translateAndScale = (el, pos, scale = 1) => {
+        el.style.transform = `translate(${pos[0]}px,${pos[1]}px) scale(${scale})`;
+    };
+    const setVisible = (el, v) => {
+        el.style.visibility = v ? 'visible' : 'hidden';
+    };
+    const eventPosition = (e) => {
+        if (e.clientX || e.clientX === 0)
+            return [e.clientX, e.clientY];
+        if (e.targetTouches?.[0])
+            return [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
+        return; // touchend has no position!
+    };
+    const isRightButton = (e) => e.button === 2;
+    const createEl = (tagName, className) => {
+        const el = document.createElement(tagName);
+        if (className)
+            el.className = className;
+        return el;
+    };
+    function computeSquareCenter(key, asWhite, bounds) {
+        const pos = key2pos(key);
+        if (!asWhite) {
+            pos[0] = 7 - pos[0];
+            pos[1] = 7 - pos[1];
+        }
+        return [
+            bounds.left + (bounds.width * pos[0]) / 8 + bounds.width / 16,
+            bounds.top + (bounds.height * (7 - pos[1])) / 8 + bounds.height / 16,
+        ];
+    }
+    const diff = (a, b) => Math.abs(a - b);
+    const knightDir = (x1, y1, x2, y2) => diff(x1, x2) * diff(y1, y2) === 2;
+    const rookDir = (x1, y1, x2, y2) => (x1 === x2) !== (y1 === y2);
+    const bishopDir = (x1, y1, x2, y2) => diff(x1, x2) === diff(y1, y2) && x1 !== x2;
+    const queenDir = (x1, y1, x2, y2) => rookDir(x1, y1, x2, y2) || bishopDir(x1, y1, x2, y2);
+    const kingDirNonCastling = (x1, y1, x2, y2) => Math.max(diff(x1, x2), diff(y1, y2)) === 1;
+    const pawnDirCapture = (x1, y1, x2, y2, isDirectionUp) => diff(x1, x2) === 1 && y2 === y1 + (isDirectionUp ? 1 : -1);
+    const pawnDirAdvance = (x1, y1, x2, y2, isDirectionUp) => {
+        const step = isDirectionUp ? 1 : -1;
+        return (x1 === x2 &&
+            (y2 === y1 + step ||
+                // allow 2 squares from first two ranks, for horde
+                (y2 === y1 + 2 * step && (isDirectionUp ? y1 <= 1 : y1 >= 6))));
+    };
+    /** Returns all board squares between (x1, y1) and (x2, y2) exclusive,
+     *  along a straight line (rook or bishop path). Returns [] if not aligned, or none between.
+     */
+    const squaresBetween = (x1, y1, x2, y2) => {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        // Must be a straight or diagonal line
+        if (dx && dy && Math.abs(dx) !== Math.abs(dy))
+            return [];
+        const stepX = Math.sign(dx), stepY = Math.sign(dy);
+        const squares = [];
+        let x = x1 + stepX, y = y1 + stepY;
+        while (x !== x2 || y !== y2) {
+            squares.push([x, y]);
+            x += stepX;
+            y += stepY;
+        }
+        return squares.map(sq => pos2key(sq));
+    };
+    const adjacentSquares = (square) => {
+        const pos = key2pos(square);
+        const adjacentSquares = [];
+        if (pos[0] > 0)
+            adjacentSquares.push([pos[0] - 1, pos[1]]);
+        if (pos[0] < 7)
+            adjacentSquares.push([pos[0] + 1, pos[1]]);
+        return adjacentSquares.map(pos2key);
+    };
+    const squareShiftedVertically = (square, delta) => {
+        const pos = key2pos(square);
+        pos[1] += delta;
+        return pos2key(pos);
+    };
+
+    const isDestOccupiedByFriendly = (ctx) => ctx.friendlies.has(pos2key(ctx.pos2));
+    const isDestOccupiedByEnemy = (ctx) => ctx.enemies.has(pos2key(ctx.pos2));
+    const anyPieceBetween = (pos1, pos2, pieces) => squaresBetween(...pos1, ...pos2).some(s => pieces.has(s));
+    const canEnemyPawnAdvanceToSquare = (pawnStart, dest, ctx) => {
+        const piece = ctx.enemies.get(pawnStart);
+        if (piece?.role !== 'pawn')
+            return false;
+        const step = piece.color === 'white' ? 1 : -1;
+        const startPos = key2pos(pawnStart);
+        const destPos = key2pos(dest);
+        return (pawnDirAdvance(...startPos, ...destPos, piece.color === 'white') &&
+            !anyPieceBetween(startPos, [destPos[0], destPos[1] + step], ctx.allPieces));
+    };
+    const canEnemyPawnCaptureOnSquare = (pawnStart, dest, ctx) => {
+        const enemyPawn = ctx.enemies.get(pawnStart);
+        return (enemyPawn?.role === 'pawn' &&
+            pawnDirCapture(...key2pos(pawnStart), ...key2pos(dest), enemyPawn.color === 'white') &&
+            (ctx.friendlies.has(dest) ||
+                canBeCapturedBySomeEnemyEnPassant(squareShiftedVertically(dest, enemyPawn.color === 'white' ? -1 : 1), ctx.friendlies, ctx.enemies, ctx.lastMove)));
+    };
+    const canSomeEnemyPawnAdvanceToDest = (ctx) => [...ctx.enemies.keys()].some(key => canEnemyPawnAdvanceToSquare(key, pos2key(ctx.pos2), ctx));
+    const isDestControlledByEnemy = (ctx, pieceRolesExclude) => {
+        const square = ctx.pos2;
+        return [...ctx.enemies].some(([key, piece]) => {
+            const piecePos = key2pos(key);
+            return (!pieceRolesExclude?.includes(piece.role) &&
+                ((piece.role === 'pawn' && pawnDirCapture(...piecePos, ...square, piece.color === 'white')) ||
+                    (piece.role === 'knight' && knightDir(...piecePos, ...square)) ||
+                    (piece.role === 'bishop' && bishopDir(...piecePos, ...square)) ||
+                    (piece.role === 'rook' && rookDir(...piecePos, ...square)) ||
+                    (piece.role === 'queen' && queenDir(...piecePos, ...square)) ||
+                    (piece.role === 'king' && kingDirNonCastling(...piecePos, ...square))) &&
+                (!['bishop', 'rook', 'queen'].includes(piece.role) || !anyPieceBetween(piecePos, square, ctx.allPieces)));
+        });
+    };
+    const isFriendlyOnDestAndAttacked = (ctx) => isDestOccupiedByFriendly(ctx) &&
+        (canBeCapturedBySomeEnemyEnPassant(pos2key(ctx.pos2), ctx.friendlies, ctx.enemies, ctx.lastMove) ||
+            isDestControlledByEnemy(ctx));
+    const canBeCapturedBySomeEnemyEnPassant = (potentialSquareOfFriendlyPawn, friendlies, enemies, lastMove) => {
+        if (lastMove && potentialSquareOfFriendlyPawn !== lastMove[1])
+            return false;
+        const pos = key2pos(potentialSquareOfFriendlyPawn);
+        const friendly = friendlies.get(potentialSquareOfFriendlyPawn);
+        return (friendly?.role === 'pawn' &&
+            pos[1] === (friendly.color === 'white' ? 3 : 4) &&
+            (!lastMove || diff(key2pos(lastMove[0])[1], pos[1]) === 2) &&
+            [1, -1].some(delta => enemies.get(pos2key([pos[0] + delta, pos[1]]))?.role === 'pawn'));
+    };
+    const isPathClearEnoughOfFriendliesForPremove = (ctx) => {
+        if (ctx.unrestrictedPremoves)
+            return true;
+        const squaresBetween$1 = squaresBetween(...ctx.pos1, ...ctx.pos2);
+        const squaresOfFriendliesBetween = squaresBetween$1.filter(s => ctx.friendlies.has(s));
+        return (!squaresOfFriendliesBetween.length ||
+            (squaresOfFriendliesBetween.length === 1 &&
+                canBeCapturedBySomeEnemyEnPassant(squaresOfFriendliesBetween[0], ctx.friendlies, ctx.enemies, ctx.lastMove) &&
+                !squaresBetween$1.includes(squareShiftedVertically(squaresOfFriendliesBetween[0], ctx.color === 'white' ? -1 : 1))));
+    };
+    const isPathClearEnoughOfEnemiesForPremove = (ctx) => {
+        if (ctx.unrestrictedPremoves)
+            return true;
+        const squaresBetween$1 = squaresBetween(...ctx.pos1, ...ctx.pos2);
+        const squaresOfEnemiesBetween = squaresBetween$1.filter(s => ctx.enemies.has(s));
+        if (squaresOfEnemiesBetween.length > 1)
+            return false;
+        if (!squaresOfEnemiesBetween.length)
+            return true;
+        const enemySquare = squaresOfEnemiesBetween[0];
+        const enemy = ctx.enemies.get(enemySquare);
+        if (!enemy || enemy.role !== 'pawn')
+            return true;
+        const enemyStep = enemy.color === 'white' ? 1 : -1;
+        const squareAbove = squareShiftedVertically(enemySquare, enemyStep);
+        const enemyPawnDests = [
+            ...adjacentSquares(squareAbove).filter(s => canEnemyPawnCaptureOnSquare(enemySquare, s, ctx)),
+            ...[squareAbove, squareShiftedVertically(squareAbove, enemyStep)].filter(s => s && canEnemyPawnAdvanceToSquare(enemySquare, s, ctx)),
+        ];
+        const badSquares = [...squaresBetween$1, pos2key(ctx.pos1)];
+        return enemyPawnDests.some(square => !badSquares.includes(square));
+    };
+    const isPathClearEnoughForPremove = (ctx) => isPathClearEnoughOfFriendliesForPremove(ctx) && isPathClearEnoughOfEnemiesForPremove(ctx);
+    const pawn = (ctx) => {
+        const step = ctx.color === 'white' ? 1 : -1;
+        if (diff(ctx.pos1[0], ctx.pos2[0]) > 1)
+            return false;
+        if (!diff(ctx.pos1[0], ctx.pos2[0])) {
+            return (pawnDirAdvance(...ctx.pos1, ...ctx.pos2, ctx.color === 'white') &&
+                isPathClearEnoughForPremove({ ...ctx, pos2: [ctx.pos2[0], ctx.pos2[1] + step] }));
+        }
+        if (ctx.pos2[1] !== ctx.pos1[1] + step)
+            return false;
+        if (ctx.unrestrictedPremoves || isDestOccupiedByEnemy(ctx))
+            return true;
+        if (isDestOccupiedByFriendly(ctx))
+            return isDestControlledByEnemy(ctx);
+        else
+            return (canSomeEnemyPawnAdvanceToDest(ctx) ||
+                canBeCapturedBySomeEnemyEnPassant(pos2key([ctx.pos2[0], ctx.pos2[1] + step]), ctx.friendlies, ctx.enemies, ctx.lastMove) ||
+                isDestControlledByEnemy(ctx, ['pawn']));
+    };
+    const knight = (ctx) => knightDir(...ctx.pos1, ...ctx.pos2) &&
+        (ctx.unrestrictedPremoves || !isDestOccupiedByFriendly(ctx) || isFriendlyOnDestAndAttacked(ctx));
+    const bishop = (ctx) => bishopDir(...ctx.pos1, ...ctx.pos2) &&
+        isPathClearEnoughForPremove(ctx) &&
+        (ctx.unrestrictedPremoves || !isDestOccupiedByFriendly(ctx) || isFriendlyOnDestAndAttacked(ctx));
+    const rook = (ctx) => rookDir(...ctx.pos1, ...ctx.pos2) &&
+        isPathClearEnoughForPremove(ctx) &&
+        (ctx.unrestrictedPremoves || !isDestOccupiedByFriendly(ctx) || isFriendlyOnDestAndAttacked(ctx));
+    const queen = (ctx) => bishop(ctx) || rook(ctx);
+    const king = (ctx) => (kingDirNonCastling(...ctx.pos1, ...ctx.pos2) &&
+        (ctx.unrestrictedPremoves || !isDestOccupiedByFriendly(ctx) || isFriendlyOnDestAndAttacked(ctx))) ||
+        (ctx.canCastle &&
+            ctx.pos1[1] === ctx.pos2[1] &&
+            ctx.pos1[1] === (ctx.color === 'white' ? 0 : 7) &&
+            ((ctx.pos1[0] === 4 &&
+                ((ctx.pos2[0] === 2 && ctx.rookFilesFriendlies.includes(0)) ||
+                    (ctx.pos2[0] === 6 && ctx.rookFilesFriendlies.includes(7)))) ||
+                ctx.rookFilesFriendlies.includes(ctx.pos2[0])) &&
+            (ctx.unrestrictedPremoves ||
+                /* The following checks if no non-rook friendly piece is in the way between the king and its castling destination.
+                   Note that for the Chess960 edge case of Kb1 "long castling", the check passes even if there is a piece in the way
+                   on c1. But this is fine, since premoving from b1 to a1 as a normal move would have already returned true. */
+                squaresBetween(...ctx.pos1, ctx.pos2[0] > ctx.pos1[0] ? 7 : 1, ctx.pos2[1])
+                    .map(s => ctx.allPieces.get(s))
+                    .every(p => !p || samePiece(p, { role: 'rook', color: ctx.color }))));
+    const mobilityByRole = { pawn, knight, bishop, rook, queen, king };
+    function premove(state, key) {
+        const pieces = state.pieces, canCastle = state.premovable.castle, unrestrictedPremoves = !!state.premovable.unrestrictedPremoves;
+        const piece = pieces.get(key);
+        if (!piece || piece.color === state.turnColor)
+            return [];
+        const color = piece.color, friendlies = new Map([...pieces].filter(([_, p]) => p.color === color)), enemies = new Map([...pieces].filter(([_, p]) => p.color === opposite(color))), pos = key2pos(key), mobility = mobilityByRole[piece.role], ctx = {
+            pos1: pos,
+            allPieces: pieces,
+            friendlies: friendlies,
+            enemies: enemies,
+            unrestrictedPremoves: unrestrictedPremoves,
+            color: color,
+            canCastle: canCastle,
+            rookFilesFriendlies: Array.from(pieces)
+                .filter(([k, p]) => k[1] === (color === 'white' ? '1' : '8') && p.color === color && p.role === 'rook')
+                .map(([k]) => key2pos(k)[0]),
+            lastMove: state.lastMove,
+        };
+        return allPos.filter(pos2 => mobility({ ...ctx, pos2 })).map(pos2key);
+    }
+
+    function callUserFunction(f, ...args) {
+        if (f)
+            setTimeout(() => f(...args), 1);
+    }
+    function toggleOrientation(state) {
+        state.orientation = opposite(state.orientation);
+        state.animation.current = state.draggable.current = state.selected = undefined;
+    }
+    function setPieces(state, pieces) {
+        for (const [key, piece] of pieces) {
+            if (piece)
+                state.pieces.set(key, piece);
+            else
+                state.pieces.delete(key);
+        }
+    }
+    function setCheck(state, color) {
+        state.check = undefined;
+        if (color === true)
+            color = state.turnColor;
+        if (color)
+            for (const [k, p] of state.pieces) {
+                if (p.role === 'king' && p.color === color) {
+                    state.check = k;
+                }
+            }
+    }
+    function setPremove(state, orig, dest, meta) {
+        unsetPredrop(state);
+        state.premovable.current = [orig, dest];
+        callUserFunction(state.premovable.events.set, orig, dest, meta);
+    }
+    function unsetPremove(state) {
+        if (state.premovable.current) {
+            state.premovable.current = undefined;
+            callUserFunction(state.premovable.events.unset);
+        }
+    }
+    function setPredrop(state, role, key) {
+        unsetPremove(state);
+        state.predroppable.current = { role, key };
+        callUserFunction(state.predroppable.events.set, role, key);
+    }
+    function unsetPredrop(state) {
+        const pd = state.predroppable;
+        if (pd.current) {
+            pd.current = undefined;
+            callUserFunction(pd.events.unset);
+        }
+    }
+    function tryAutoCastle(state, orig, dest) {
+        if (!state.autoCastle)
+            return false;
+        const king = state.pieces.get(orig);
+        if (!king || king.role !== 'king')
+            return false;
+        const origPos = key2pos(orig);
+        const destPos = key2pos(dest);
+        if ((origPos[1] !== 0 && origPos[1] !== 7) || origPos[1] !== destPos[1])
+            return false;
+        if (origPos[0] === 4 && !state.pieces.has(dest)) {
+            if (destPos[0] === 6)
+                dest = pos2key([7, destPos[1]]);
+            else if (destPos[0] === 2)
+                dest = pos2key([0, destPos[1]]);
+        }
+        const rook = state.pieces.get(dest);
+        if (!rook || rook.color !== king.color || rook.role !== 'rook')
+            return false;
+        state.pieces.delete(orig);
+        state.pieces.delete(dest);
+        if (origPos[0] < destPos[0]) {
+            state.pieces.set(pos2key([6, destPos[1]]), king);
+            state.pieces.set(pos2key([5, destPos[1]]), rook);
+        }
+        else {
+            state.pieces.set(pos2key([2, destPos[1]]), king);
+            state.pieces.set(pos2key([3, destPos[1]]), rook);
+        }
+        return true;
+    }
+    function baseMove(state, orig, dest) {
+        const origPiece = state.pieces.get(orig), destPiece = state.pieces.get(dest);
+        if (orig === dest || !origPiece)
+            return false;
+        const captured = destPiece && destPiece.color !== origPiece.color ? destPiece : undefined;
+        if (dest === state.selected)
+            unselect(state);
+        callUserFunction(state.events.move, orig, dest, captured);
+        if (!tryAutoCastle(state, orig, dest)) {
+            state.pieces.set(dest, origPiece);
+            state.pieces.delete(orig);
+        }
+        state.lastMove = [orig, dest];
+        state.check = undefined;
+        callUserFunction(state.events.change);
+        return captured || true;
+    }
+    function baseNewPiece(state, piece, key, force) {
+        if (state.pieces.has(key)) {
+            if (force)
+                state.pieces.delete(key);
+            else
+                return false;
+        }
+        callUserFunction(state.events.dropNewPiece, piece, key);
+        state.pieces.set(key, piece);
+        state.lastMove = [key];
+        state.check = undefined;
+        callUserFunction(state.events.change);
+        state.movable.dests = undefined;
+        state.turnColor = opposite(state.turnColor);
+        return true;
+    }
+    function baseUserMove(state, orig, dest) {
+        const result = baseMove(state, orig, dest);
+        if (result) {
+            state.movable.dests = undefined;
+            state.turnColor = opposite(state.turnColor);
+            state.animation.current = undefined;
+        }
+        return result;
+    }
+    function userMove(state, orig, dest) {
+        if (canMove(state, orig, dest)) {
+            const result = baseUserMove(state, orig, dest);
+            if (result) {
+                const holdTime = state.hold.stop();
+                unselect(state);
+                const metadata = {
+                    premove: false,
+                    ctrlKey: state.stats.ctrlKey,
+                    holdTime,
+                };
+                if (result !== true)
+                    metadata.captured = result;
+                callUserFunction(state.movable.events.after, orig, dest, metadata);
+                return true;
+            }
+        }
+        else if (canPremove(state, orig, dest)) {
+            setPremove(state, orig, dest, {
+                ctrlKey: state.stats.ctrlKey,
+            });
+            unselect(state);
+            return true;
+        }
+        unselect(state);
+        return false;
+    }
+    function dropNewPiece(state, orig, dest, force) {
+        const piece = state.pieces.get(orig);
+        if (piece && (canDrop(state, orig, dest) || force)) {
+            state.pieces.delete(orig);
+            baseNewPiece(state, piece, dest, force);
+            callUserFunction(state.movable.events.afterNewPiece, piece.role, dest, {
+                premove: false,
+                predrop: false,
+            });
+        }
+        else if (piece && canPredrop(state, orig, dest)) {
+            setPredrop(state, piece.role, dest);
+        }
+        else {
+            unsetPremove(state);
+            unsetPredrop(state);
+        }
+        state.pieces.delete(orig);
+        unselect(state);
+    }
+    function selectSquare(state, key, force) {
+        callUserFunction(state.events.select, key);
+        if (state.selected) {
+            if (state.selected === key && !state.draggable.enabled) {
+                unselect(state);
+                state.hold.cancel();
+                return;
+            }
+            else if ((state.selectable.enabled || force) && state.selected !== key) {
+                if (userMove(state, state.selected, key)) {
+                    state.stats.dragged = false;
+                    return;
+                }
+            }
+        }
+        if ((state.selectable.enabled || state.draggable.enabled) &&
+            (isMovable(state, key) || isPremovable(state, key))) {
+            setSelected(state, key);
+            state.hold.start();
+        }
+    }
+    function setSelected(state, key) {
+        state.selected = key;
+        if (!isPremovable(state, key))
+            state.premovable.dests = undefined;
+        else if (!state.premovable.customDests)
+            state.premovable.dests = premove(state, key);
+        // calculate chess premoves if custom premoves are not passed
+    }
+    function unselect(state) {
+        state.selected = undefined;
+        state.premovable.dests = undefined;
+        state.hold.cancel();
+    }
+    function isMovable(state, orig) {
+        const piece = state.pieces.get(orig);
+        return (!!piece &&
+            (state.movable.color === 'both' ||
+                (state.movable.color === piece.color && state.turnColor === piece.color)));
+    }
+    const canMove = (state, orig, dest) => orig !== dest &&
+        isMovable(state, orig) &&
+        (state.movable.free || !!state.movable.dests?.get(orig)?.includes(dest));
+    function canDrop(state, orig, dest) {
+        const piece = state.pieces.get(orig);
+        return (!!piece &&
+            (orig === dest || !state.pieces.has(dest)) &&
+            (state.movable.color === 'both' ||
+                (state.movable.color === piece.color && state.turnColor === piece.color)));
+    }
+    function isPremovable(state, orig) {
+        const piece = state.pieces.get(orig);
+        return (!!piece &&
+            state.premovable.enabled &&
+            state.movable.color === piece.color &&
+            state.turnColor !== piece.color);
+    }
+    const canPremove = (state, orig, dest) => orig !== dest &&
+        isPremovable(state, orig) &&
+        (state.premovable.customDests?.get(orig) ?? premove(state, orig)).includes(dest);
+    function canPredrop(state, orig, dest) {
+        const piece = state.pieces.get(orig);
+        const destPiece = state.pieces.get(dest);
+        return (!!piece &&
+            (!destPiece || destPiece.color !== state.movable.color) &&
+            state.predroppable.enabled &&
+            (piece.role !== 'pawn' || (dest[1] !== '1' && dest[1] !== '8')) &&
+            state.movable.color === piece.color &&
+            state.turnColor !== piece.color);
+    }
+    function isDraggable(state, orig) {
+        const piece = state.pieces.get(orig);
+        return (!!piece &&
+            state.draggable.enabled &&
+            (state.movable.color === 'both' ||
+                (state.movable.color === piece.color && (state.turnColor === piece.color || state.premovable.enabled))));
+    }
+    function playPremove(state) {
+        const move = state.premovable.current;
+        if (!move)
+            return false;
+        const orig = move[0], dest = move[1];
+        let success = false;
+        if (canMove(state, orig, dest)) {
+            const result = baseUserMove(state, orig, dest);
+            if (result) {
+                const metadata = { premove: true };
+                if (result !== true)
+                    metadata.captured = result;
+                callUserFunction(state.movable.events.after, orig, dest, metadata);
+                success = true;
+            }
+        }
+        unsetPremove(state);
+        return success;
+    }
+    function playPredrop(state, validate) {
+        const drop = state.predroppable.current;
+        let success = false;
+        if (!drop)
+            return false;
+        if (validate(drop)) {
+            const piece = {
+                role: drop.role,
+                color: state.movable.color,
+            };
+            if (baseNewPiece(state, piece, drop.key)) {
+                callUserFunction(state.movable.events.afterNewPiece, drop.role, drop.key, {
+                    premove: false,
+                    predrop: true,
+                });
+                success = true;
+            }
+        }
+        unsetPredrop(state);
+        return success;
+    }
+    function cancelMove(state) {
+        unsetPremove(state);
+        unsetPredrop(state);
+        unselect(state);
+    }
+    function stop(state) {
+        state.movable.color = state.movable.dests = state.animation.current = undefined;
+        cancelMove(state);
+    }
+    function getKeyAtDomPos(pos, asWhite, bounds) {
+        let file = Math.floor((8 * (pos[0] - bounds.left)) / bounds.width);
+        if (!asWhite)
+            file = 7 - file;
+        let rank = 7 - Math.floor((8 * (pos[1] - bounds.top)) / bounds.height);
+        if (!asWhite)
+            rank = 7 - rank;
+        return file >= 0 && file < 8 && rank >= 0 && rank < 8 ? pos2key([file, rank]) : undefined;
+    }
+    function getSnappedKeyAtDomPos(orig, pos, asWhite, bounds) {
+        const origPos = key2pos(orig);
+        const validSnapPos = allPos.filter(pos2 => samePos(origPos, pos2) ||
+            queenDir(origPos[0], origPos[1], pos2[0], pos2[1]) ||
+            knightDir(origPos[0], origPos[1], pos2[0], pos2[1]));
+        const validSnapCenters = validSnapPos.map(pos2 => computeSquareCenter(pos2key(pos2), asWhite, bounds));
+        const validSnapDistances = validSnapCenters.map(pos2 => distanceSq(pos, pos2));
+        const [, closestSnapIndex] = validSnapDistances.reduce((a, b, index) => (a[0] < b ? a : [b, index]), [validSnapDistances[0], 0]);
+        return pos2key(validSnapPos[closestSnapIndex]);
+    }
+    const whitePov = (s) => s.orientation === 'white';
+
+    const initial = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
+    const roles = {
+        p: 'pawn',
+        r: 'rook',
+        n: 'knight',
+        b: 'bishop',
+        q: 'queen',
+        k: 'king',
+    };
+    const letters = {
+        pawn: 'p',
+        rook: 'r',
+        knight: 'n',
+        bishop: 'b',
+        queen: 'q',
+        king: 'k',
+    };
+    function read(fen) {
+        if (fen === 'start')
+            fen = initial;
+        const pieces = new Map();
+        let row = 7, col = 0;
+        for (const c of fen) {
+            switch (c) {
+                case ' ':
+                case '[':
+                    return pieces;
+                case '/':
+                    --row;
+                    if (row < 0)
+                        return pieces;
+                    col = 0;
+                    break;
+                case '~': {
+                    const piece = pieces.get(pos2key([col - 1, row]));
+                    if (piece)
+                        piece.promoted = true;
+                    break;
+                }
+                default: {
+                    const nb = c.charCodeAt(0);
+                    if (nb < 57)
+                        col += nb - 48;
+                    else {
+                        const role = c.toLowerCase();
+                        const key = pos2key([col, row]);
+                        if (key)
+                            pieces.set(key, {
+                                role: roles[role],
+                                color: c === role ? 'black' : 'white',
+                            });
+                        ++col;
+                    }
+                }
+            }
+        }
+        return pieces;
+    }
+    function write(pieces) {
+        return invRanks
+            .map(y => files
+            .map(x => {
+            const piece = pieces.get((x + y));
+            if (piece) {
+                let p = letters[piece.role];
+                if (piece.color === 'white')
+                    p = p.toUpperCase();
+                if (piece.promoted)
+                    p += '~';
+                return p;
+            }
+            else
+                return '1';
+        })
+            .join(''))
+            .join('/')
+            .replace(/1{2,}/g, s => s.length.toString());
+    }
+
+    function applyAnimation(state, config) {
+        if (config.animation) {
+            deepMerge(state.animation, config.animation);
+            // no need for such short animations
+            if ((state.animation.duration || 0) < 70)
+                state.animation.enabled = false;
+        }
+    }
+    function configure(state, config) {
+        // don't merge destinations and autoShapes. Just override.
+        if (config.movable?.dests)
+            state.movable.dests = undefined;
+        if (config.drawable?.autoShapes)
+            state.drawable.autoShapes = [];
+        deepMerge(state, config);
+        // if a fen was provided, replace the pieces
+        if (config.fen) {
+            state.pieces = read(config.fen);
+            state.drawable.shapes = config.drawable?.shapes || [];
+        }
+        // apply config values that could be undefined yet meaningful
+        if ('check' in config)
+            setCheck(state, config.check || false);
+        if ('lastMove' in config && !config.lastMove)
+            state.lastMove = undefined;
+        // in case of ZH drop last move, there's a single square.
+        // if the previous last move had two squares,
+        // the merge algorithm will incorrectly keep the second square.
+        else if (config.lastMove)
+            state.lastMove = config.lastMove;
+        // fix move/premove dests
+        if (state.selected)
+            setSelected(state, state.selected);
+        applyAnimation(state, config);
+        if (!state.movable.rookCastle && state.movable.dests) {
+            const rank = state.movable.color === 'white' ? '1' : '8', kingStartPos = ('e' + rank), dests = state.movable.dests.get(kingStartPos), king = state.pieces.get(kingStartPos);
+            if (!dests || !king || king.role !== 'king')
+                return;
+            state.movable.dests.set(kingStartPos, dests.filter(d => !(d === 'a' + rank && dests.includes(('c' + rank))) &&
+                !(d === 'h' + rank && dests.includes(('g' + rank)))));
+        }
+    }
+    function deepMerge(base, extend) {
+        for (const key in extend) {
+            if (key === '__proto__' || key === 'constructor' || !Object.prototype.hasOwnProperty.call(extend, key))
+                continue;
+            if (Object.prototype.hasOwnProperty.call(base, key) &&
+                isPlainObject(base[key]) &&
+                isPlainObject(extend[key]))
+                deepMerge(base[key], extend[key]);
+            else
+                base[key] = extend[key];
+        }
+    }
+    function isPlainObject(o) {
+        if (typeof o !== 'object' || o === null)
+            return false;
+        const proto = Object.getPrototypeOf(o);
+        return proto === Object.prototype || proto === null;
+    }
+
+    const anim = (mutation, state) => state.animation.enabled ? animate(mutation, state) : render$2(mutation, state);
+    function render$2(mutation, state) {
+        const result = mutation(state);
+        state.dom.redraw();
+        return result;
+    }
+    const makePiece = (key, piece) => ({
+        key: key,
+        pos: key2pos(key),
+        piece: piece,
+    });
+    const closer = (piece, pieces) => pieces.sort((p1, p2) => distanceSq(piece.pos, p1.pos) - distanceSq(piece.pos, p2.pos))[0];
+    function computePlan(prevPieces, current) {
+        const anims = new Map(), animedOrigs = [], fadings = new Map(), missings = [], news = [], prePieces = new Map();
+        let curP, preP, vector;
+        for (const [k, p] of prevPieces) {
+            prePieces.set(k, makePiece(k, p));
+        }
+        for (const key of allKeys) {
+            curP = current.pieces.get(key);
+            preP = prePieces.get(key);
+            if (curP) {
+                if (preP) {
+                    if (!samePiece(curP, preP.piece)) {
+                        missings.push(preP);
+                        news.push(makePiece(key, curP));
+                    }
+                }
+                else
+                    news.push(makePiece(key, curP));
+            }
+            else if (preP)
+                missings.push(preP);
+        }
+        for (const newP of news) {
+            preP = closer(newP, missings.filter(p => samePiece(newP.piece, p.piece)));
+            if (preP) {
+                vector = [preP.pos[0] - newP.pos[0], preP.pos[1] - newP.pos[1]];
+                anims.set(newP.key, vector.concat(vector));
+                animedOrigs.push(preP.key);
+            }
+        }
+        for (const p of missings) {
+            if (!animedOrigs.includes(p.key))
+                fadings.set(p.key, p.piece);
+        }
+        return {
+            anims: anims,
+            fadings: fadings,
+        };
+    }
+    function step(state, now) {
+        const cur = state.animation.current;
+        if (cur === undefined) {
+            // animation was canceled :(
+            if (!state.dom.destroyed)
+                state.dom.redrawNow();
+            return;
+        }
+        const rest = 1 - (now - cur.start) * cur.frequency;
+        if (rest <= 0) {
+            state.animation.current = undefined;
+            state.dom.redrawNow();
+        }
+        else {
+            const ease = easing(rest);
+            for (const cfg of cur.plan.anims.values()) {
+                cfg[2] = cfg[0] * ease;
+                cfg[3] = cfg[1] * ease;
+            }
+            state.dom.redrawNow(true); // optimisation: don't render SVG changes during animations
+            requestAnimationFrame((now = performance.now()) => step(state, now));
+        }
+    }
+    function animate(mutation, state) {
+        // clone state before mutating it
+        const prevPieces = new Map(state.pieces);
+        const result = mutation(state);
+        const plan = computePlan(prevPieces, state);
+        if (plan.anims.size || plan.fadings.size) {
+            const alreadyRunning = state.animation.current && state.animation.current.start;
+            state.animation.current = {
+                start: performance.now(),
+                frequency: 1 / state.animation.duration,
+                plan: plan,
+            };
+            if (!alreadyRunning)
+                step(state, performance.now());
+        }
+        else {
+            // don't animate, just render right away
+            state.dom.redraw();
+        }
+        return result;
+    }
+    // https://gist.github.com/gre/1650294
+    const easing = (t) => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1);
+
+    const brushes = ['green', 'red', 'blue', 'yellow'];
+    function start$2(state, e) {
+        // support one finger touch only
+        if (e.touches && e.touches.length > 1)
+            return;
+        e.stopPropagation();
+        e.preventDefault();
+        e.ctrlKey ? unselect(state) : cancelMove(state);
+        const pos = eventPosition(e), orig = getKeyAtDomPos(pos, whitePov(state), state.dom.bounds());
+        if (!orig)
+            return;
+        state.drawable.current = {
+            orig,
+            pos,
+            brush: eventBrush(e),
+            snapToValidMove: state.drawable.defaultSnapToValidMove,
+        };
+        processDraw(state);
+    }
+    function processDraw(state) {
+        requestAnimationFrame(() => {
+            const cur = state.drawable.current;
+            if (cur) {
+                const keyAtDomPos = getKeyAtDomPos(cur.pos, whitePov(state), state.dom.bounds());
+                if (!keyAtDomPos) {
+                    cur.snapToValidMove = false;
+                }
+                const mouseSq = cur.snapToValidMove
+                    ? getSnappedKeyAtDomPos(cur.orig, cur.pos, whitePov(state), state.dom.bounds())
+                    : keyAtDomPos;
+                if (mouseSq !== cur.mouseSq) {
+                    cur.mouseSq = mouseSq;
+                    cur.dest = mouseSq !== cur.orig ? mouseSq : undefined;
+                    state.dom.redrawNow();
+                }
+                processDraw(state);
+            }
+        });
+    }
+    function move$1(state, e) {
+        if (state.drawable.current)
+            state.drawable.current.pos = eventPosition(e);
+    }
+    function end$1(state) {
+        const cur = state.drawable.current;
+        if (cur) {
+            if (cur.mouseSq)
+                addShape(state.drawable, cur);
+            cancel$1(state);
+        }
+    }
+    function cancel$1(state) {
+        if (state.drawable.current) {
+            state.drawable.current = undefined;
+            state.dom.redraw();
+        }
+    }
+    function clear(state) {
+        if (state.drawable.shapes.length) {
+            state.drawable.shapes = [];
+            state.dom.redraw();
+            onChange(state.drawable);
+        }
+    }
+    function eventBrush(e) {
+        const modA = (e.shiftKey || e.ctrlKey) && isRightButton(e);
+        const modB = e.altKey || e.metaKey || e.getModifierState?.('AltGraph');
+        return brushes[(modA ? 1 : 0) + (modB ? 2 : 0)];
+    }
+    function addShape(drawable, cur) {
+        const sameShape = (s) => s.orig === cur.orig && s.dest === cur.dest;
+        const similar = drawable.shapes.find(sameShape);
+        if (similar)
+            drawable.shapes = drawable.shapes.filter(s => !sameShape(s));
+        if (!similar || similar.brush !== cur.brush)
+            drawable.shapes.push({
+                orig: cur.orig,
+                dest: cur.dest,
+                brush: cur.brush,
+            });
+        onChange(drawable);
+    }
+    function onChange(drawable) {
+        if (drawable.onChange)
+            drawable.onChange(drawable.shapes);
+    }
+
+    function start$1(s, e) {
+        if (!(s.trustAllEvents || e.isTrusted))
+            return; // only trust when trustAllEvents is enabled
+        if (e.buttons !== undefined && e.buttons > 1)
+            return; // only touch or left click
+        if (e.touches && e.touches.length > 1)
+            return; // support one finger touch only
+        const bounds = s.dom.bounds(), position = eventPosition(e), orig = getKeyAtDomPos(position, whitePov(s), bounds);
+        if (!orig)
+            return;
+        const piece = s.pieces.get(orig);
+        const previouslySelected = s.selected;
+        if (!previouslySelected &&
+            s.drawable.enabled &&
+            (s.drawable.eraseOnClick || !piece || piece.color !== s.turnColor))
+            clear(s);
+        // Prevent touch scroll and create no corresponding mouse event, if there
+        // is an intent to interact with the board.
+        if (e.cancelable !== false &&
+            (!e.touches || s.blockTouchScroll || piece || previouslySelected || pieceCloseTo(s, position)))
+            e.preventDefault();
+        else if (e.touches)
+            return; // Handle only corresponding mouse event https://github.com/lichess-org/chessground/pull/268
+        const hadPremove = !!s.premovable.current;
+        const hadPredrop = !!s.predroppable.current;
+        s.stats.ctrlKey = e.ctrlKey;
+        if (s.selected && canMove(s, s.selected, orig)) {
+            anim(state => selectSquare(state, orig), s);
+        }
+        else {
+            selectSquare(s, orig);
+        }
+        const stillSelected = s.selected === orig;
+        const element = pieceElementByKey(s, orig);
+        if (piece && element && stillSelected && isDraggable(s, orig)) {
+            s.draggable.current = {
+                orig,
+                piece,
+                origPos: position,
+                pos: position,
+                started: s.draggable.autoDistance && s.stats.dragged,
+                element,
+                previouslySelected,
+                originTarget: e.target,
+                keyHasChanged: false,
+            };
+            element.cgDragging = true;
+            element.classList.add('dragging');
+            // place ghost
+            const ghost = s.dom.elements.ghost;
+            if (ghost) {
+                ghost.className = `ghost ${piece.color} ${piece.role}`;
+                translate(ghost, posToTranslate(bounds)(key2pos(orig), whitePov(s)));
+                setVisible(ghost, true);
+            }
+            processDrag(s);
+        }
+        else {
+            if (hadPremove)
+                unsetPremove(s);
+            if (hadPredrop)
+                unsetPredrop(s);
+        }
+        s.dom.redraw();
+    }
+    function pieceCloseTo(s, pos) {
+        const asWhite = whitePov(s), bounds = s.dom.bounds(), radiusSq = Math.pow((s.touchIgnoreRadius * bounds.width) / 16, 2) * 2;
+        for (const key of s.pieces.keys()) {
+            const center = computeSquareCenter(key, asWhite, bounds);
+            if (distanceSq(center, pos) <= radiusSq)
+                return true;
+        }
+        return false;
+    }
+    function dragNewPiece(s, piece, e, force) {
+        const key = 'a0';
+        s.pieces.set(key, piece);
+        s.dom.redraw();
+        const position = eventPosition(e);
+        s.draggable.current = {
+            orig: key,
+            piece,
+            origPos: position,
+            pos: position,
+            started: true,
+            element: () => pieceElementByKey(s, key),
+            originTarget: e.target,
+            newPiece: true,
+            force: !!force,
+            keyHasChanged: false,
+        };
+        processDrag(s);
+    }
+    function processDrag(s) {
+        requestAnimationFrame(() => {
+            const cur = s.draggable.current;
+            if (!cur)
+                return;
+            // cancel animations while dragging
+            if (s.animation.current?.plan.anims.has(cur.orig))
+                s.animation.current = undefined;
+            // if moving piece is gone, cancel
+            const origPiece = s.pieces.get(cur.orig);
+            if (!origPiece || !samePiece(origPiece, cur.piece))
+                cancel(s);
+            else {
+                if (!cur.started && distanceSq(cur.pos, cur.origPos) >= Math.pow(s.draggable.distance, 2))
+                    cur.started = true;
+                if (cur.started) {
+                    // support lazy elements
+                    if (typeof cur.element === 'function') {
+                        const found = cur.element();
+                        if (!found)
+                            return;
+                        found.cgDragging = true;
+                        found.classList.add('dragging');
+                        cur.element = found;
+                    }
+                    const bounds = s.dom.bounds();
+                    translate(cur.element, [
+                        cur.pos[0] - bounds.left - bounds.width / 16,
+                        cur.pos[1] - bounds.top - bounds.height / 16,
+                    ]);
+                    cur.keyHasChanged || (cur.keyHasChanged = cur.orig !== getKeyAtDomPos(cur.pos, whitePov(s), bounds));
+                }
+            }
+            processDrag(s);
+        });
+    }
+    function move(s, e) {
+        // support one finger touch only
+        if (s.draggable.current && (!e.touches || e.touches.length < 2)) {
+            s.draggable.current.pos = eventPosition(e);
+        }
+    }
+    function end(s, e) {
+        const cur = s.draggable.current;
+        if (!cur)
+            return;
+        // create no corresponding mouse event
+        if (e.type === 'touchend' && e.cancelable !== false)
+            e.preventDefault();
+        // comparing with the origin target is an easy way to test that the end event
+        // has the same touch origin
+        if (e.type === 'touchend' && cur.originTarget !== e.target && !cur.newPiece) {
+            s.draggable.current = undefined;
+            return;
+        }
+        unsetPremove(s);
+        unsetPredrop(s);
+        // touchend has no position; so use the last touchmove position instead
+        const eventPos = eventPosition(e) || cur.pos;
+        const dest = getKeyAtDomPos(eventPos, whitePov(s), s.dom.bounds());
+        if (dest && cur.started && cur.orig !== dest) {
+            if (cur.newPiece)
+                dropNewPiece(s, cur.orig, dest, cur.force);
+            else {
+                s.stats.ctrlKey = e.ctrlKey;
+                if (userMove(s, cur.orig, dest))
+                    s.stats.dragged = true;
+            }
+        }
+        else if (cur.newPiece) {
+            s.pieces.delete(cur.orig);
+        }
+        else if (s.draggable.deleteOnDropOff && !dest) {
+            s.pieces.delete(cur.orig);
+            callUserFunction(s.events.change);
+        }
+        if ((cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest))
+            unselect(s);
+        else if (!s.selectable.enabled)
+            unselect(s);
+        removeDragElements(s);
+        s.draggable.current = undefined;
+        s.dom.redraw();
+    }
+    function cancel(s) {
+        const cur = s.draggable.current;
+        if (cur) {
+            if (cur.newPiece)
+                s.pieces.delete(cur.orig);
+            s.draggable.current = undefined;
+            unselect(s);
+            removeDragElements(s);
+            s.dom.redraw();
+        }
+    }
+    function removeDragElements(s) {
+        const e = s.dom.elements;
+        if (e.ghost)
+            setVisible(e.ghost, false);
+    }
+    function pieceElementByKey(s, key) {
+        let el = s.dom.elements.board.firstChild;
+        while (el) {
+            if (el.cgKey === key && el.tagName === 'PIECE')
+                return el;
+            el = el.nextSibling;
+        }
+        return;
+    }
+
+    function explosion(state, keys) {
+        state.exploding = { stage: 1, keys };
+        state.dom.redraw();
+        setTimeout(() => {
+            setStage(state, 2);
+            setTimeout(() => setStage(state, undefined), 120);
+        }, 120);
+    }
+    function setStage(state, stage) {
+        if (state.exploding) {
+            if (stage)
+                state.exploding.stage = stage;
+            else
+                state.exploding = undefined;
+            state.dom.redraw();
+        }
+    }
+
+    // see API types and documentations in dts/api.d.ts
+    function start(state, redrawAll) {
+        function toggleOrientation$1() {
+            toggleOrientation(state);
+            redrawAll();
+        }
+        return {
+            set(config) {
+                if (config.orientation && config.orientation !== state.orientation)
+                    toggleOrientation$1();
+                applyAnimation(state, config);
+                (config.fen ? anim : render$2)(state => configure(state, config), state);
+            },
+            state,
+            getFen: () => write(state.pieces),
+            toggleOrientation: toggleOrientation$1,
+            setPieces(pieces) {
+                anim(state => setPieces(state, pieces), state);
+            },
+            selectSquare(key, force) {
+                if (key)
+                    anim(state => selectSquare(state, key, force), state);
+                else if (state.selected) {
+                    unselect(state);
+                    state.dom.redraw();
+                }
+            },
+            move(orig, dest) {
+                anim(state => baseMove(state, orig, dest), state);
+            },
+            newPiece(piece, key) {
+                anim(state => baseNewPiece(state, piece, key), state);
+            },
+            playPremove() {
+                if (state.premovable.current) {
+                    if (anim(playPremove, state))
+                        return true;
+                    // if the premove couldn't be played, redraw to clear it up
+                    state.dom.redraw();
+                }
+                return false;
+            },
+            playPredrop(validate) {
+                if (state.predroppable.current) {
+                    const result = playPredrop(state, validate);
+                    state.dom.redraw();
+                    return result;
+                }
+                return false;
+            },
+            cancelPremove() {
+                render$2(unsetPremove, state);
+            },
+            cancelPredrop() {
+                render$2(unsetPredrop, state);
+            },
+            cancelMove() {
+                render$2(state => {
+                    cancelMove(state);
+                    cancel(state);
+                }, state);
+            },
+            stop() {
+                render$2(state => {
+                    stop(state);
+                    cancel(state);
+                }, state);
+            },
+            explode(keys) {
+                explosion(state, keys);
+            },
+            setAutoShapes(shapes) {
+                render$2(state => (state.drawable.autoShapes = shapes), state);
+            },
+            setShapes(shapes) {
+                render$2(state => (state.drawable.shapes = shapes.slice()), state);
+            },
+            getKeyAtDomPos(pos) {
+                return getKeyAtDomPos(pos, whitePov(state), state.dom.bounds());
+            },
+            redrawAll,
+            dragNewPiece(piece, event, force) {
+                dragNewPiece(state, piece, event, force);
+            },
+            destroy() {
+                stop(state);
+                state.dom.unbind && state.dom.unbind();
+                state.dom.destroyed = true;
+            },
+        };
+    }
+
+    function defaults() {
+        return {
+            pieces: read(initial),
+            orientation: 'white',
+            turnColor: 'white',
+            coordinates: true,
+            coordinatesOnSquares: false,
+            ranksPosition: 'right',
+            autoCastle: true,
+            viewOnly: false,
+            disableContextMenu: false,
+            addPieceZIndex: false,
+            blockTouchScroll: false,
+            touchIgnoreRadius: 1,
+            pieceKey: false,
+            trustAllEvents: false,
+            highlight: {
+                lastMove: true,
+                check: true,
+            },
+            animation: {
+                enabled: true,
+                duration: 200,
+            },
+            movable: {
+                free: true,
+                color: 'both',
+                showDests: true,
+                events: {},
+                rookCastle: true,
+            },
+            premovable: {
+                enabled: true,
+                showDests: true,
+                castle: true,
+                events: {},
+            },
+            predroppable: {
+                enabled: false,
+                events: {},
+            },
+            draggable: {
+                enabled: true,
+                distance: 3,
+                autoDistance: true,
+                showGhost: true,
+                deleteOnDropOff: false,
+            },
+            dropmode: {
+                active: false,
+            },
+            selectable: {
+                enabled: true,
+            },
+            stats: {
+                // on touchscreen, default to "tap-tap" moves
+                // instead of drag
+                dragged: !('ontouchstart' in window),
+            },
+            events: {},
+            drawable: {
+                enabled: true, // can draw
+                visible: true, // can view
+                defaultSnapToValidMove: true,
+                eraseOnClick: true,
+                shapes: [],
+                autoShapes: [],
+                brushes: {
+                    green: { key: 'g', color: '#15781B', opacity: 1, lineWidth: 10 },
+                    red: { key: 'r', color: '#882020', opacity: 1, lineWidth: 10 },
+                    blue: { key: 'b', color: '#003088', opacity: 1, lineWidth: 10 },
+                    yellow: { key: 'y', color: '#e68f00', opacity: 1, lineWidth: 10 },
+                    paleBlue: { key: 'pb', color: '#003088', opacity: 0.4, lineWidth: 15 },
+                    paleGreen: { key: 'pg', color: '#15781B', opacity: 0.4, lineWidth: 15 },
+                    paleRed: { key: 'pr', color: '#882020', opacity: 0.4, lineWidth: 15 },
+                    paleGrey: {
+                        key: 'pgr',
+                        color: '#4a4a4a',
+                        opacity: 0.35,
+                        lineWidth: 15,
+                    },
+                    purple: { key: 'purple', color: '#68217a', opacity: 0.65, lineWidth: 10 },
+                    pink: { key: 'pink', color: '#ee2080', opacity: 0.5, lineWidth: 10 },
+                    white: { key: 'white', color: 'white', opacity: 1, lineWidth: 10 },
+                    paleWhite: { key: 'pwhite', color: 'white', opacity: 0.6, lineWidth: 10 },
+                },
+                prevSvgHash: '',
+            },
+            hold: timer(),
+        };
+    }
+
+    function createDefs() {
+        const defs = createElement('defs');
+        const filter = setAttributes(createElement('filter'), { id: 'cg-filter-blur' });
+        filter.appendChild(setAttributes(createElement('feGaussianBlur'), { stdDeviation: '0.013' }));
+        defs.appendChild(filter);
+        return defs;
+    }
+    function renderSvg(state, els) {
+        const d = state.drawable, curD = d.current, cur = curD && curD.mouseSq ? curD : undefined, dests = new Map(), bounds = state.dom.bounds(), nonPieceAutoShapes = d.autoShapes.filter(autoShape => !autoShape.piece);
+        for (const s of d.shapes.concat(nonPieceAutoShapes).concat(cur ? [cur] : [])) {
+            if (!s.dest)
+                continue;
+            const sources = dests.get(s.dest) ?? new Set(), from = pos2user(orient(key2pos(s.orig), state.orientation), bounds), to = pos2user(orient(key2pos(s.dest), state.orientation), bounds);
+            sources.add(moveAngle(from, to));
+            dests.set(s.dest, sources);
+        }
+        const shapes = [];
+        for (const s of d.shapes.concat(nonPieceAutoShapes)) {
+            shapes.push({
+                shape: s,
+                current: false,
+                hash: shapeHash(s, isShort(s.dest, dests), false, bounds),
+            });
+        }
+        if (cur)
+            shapes.push({
+                shape: cur,
+                current: true,
+                hash: shapeHash(cur, isShort(cur.dest, dests), true, bounds),
+            });
+        const fullHash = shapes.map(sc => sc.hash).join(';');
+        if (fullHash === state.drawable.prevSvgHash)
+            return;
+        state.drawable.prevSvgHash = fullHash;
+        syncDefs(d, shapes, els);
+        syncShapes$1(shapes, els, s => renderShape$1(state, s, d.brushes, dests, bounds));
+    }
+    // append only. Don't try to update/remove.
+    function syncDefs(d, shapes, els) {
+        for (const shapesEl of [els.shapes, els.shapesBelow]) {
+            const defsEl = shapesEl.querySelector('defs');
+            const thisPlane = shapes.filter(s => (shapesEl === els.shapesBelow) === !!s.shape.below);
+            const brushes = new Map();
+            for (const s of thisPlane.filter(s => s.shape.dest && s.shape.brush)) {
+                const brush = makeCustomBrush(d.brushes[s.shape.brush], s.shape.modifiers);
+                const { key, color } = hiliteOf(s.shape);
+                if (key && color)
+                    brushes.set(key, { key, color, opacity: 1, lineWidth: 1 });
+                brushes.set(brush.key, brush);
+            }
+            const keysInDom = new Set();
+            let el = defsEl.firstElementChild;
+            while (el) {
+                keysInDom.add(el.getAttribute('cgKey'));
+                el = el.nextElementSibling;
+            }
+            for (const [key, brush] of brushes.entries()) {
+                if (!keysInDom.has(key))
+                    defsEl.appendChild(renderMarker(brush));
+            }
+        }
+    }
+    function syncShapes$1(shapes, els, renderShape) {
+        for (const [shapesEl, customEl] of [
+            [els.shapes, els.custom],
+            [els.shapesBelow, els.customBelow],
+        ]) {
+            const [shapesG, customG] = [shapesEl, customEl].map(el => el.querySelector('g'));
+            const thisPlane = shapes.filter(s => (shapesEl === els.shapesBelow) === !!s.shape.below);
+            const hashesInDom = new Map();
+            for (const sc of thisPlane)
+                hashesInDom.set(sc.hash, false);
+            for (const root of [shapesG, customG]) {
+                const toRemove = [];
+                let el = root.firstElementChild, elHash;
+                while (el) {
+                    elHash = el.getAttribute('cgHash');
+                    if (hashesInDom.has(elHash))
+                        hashesInDom.set(elHash, true);
+                    else
+                        toRemove.push(el);
+                    el = el.nextElementSibling;
+                }
+                for (const el of toRemove)
+                    root.removeChild(el);
+            }
+            // insert shapes that are not yet in dom
+            for (const sc of thisPlane.filter(s => !hashesInDom.get(s.hash))) {
+                for (const svg of renderShape(sc)) {
+                    if (svg.isCustom)
+                        customG.appendChild(svg.el);
+                    else
+                        shapesG.appendChild(svg.el);
+                }
+            }
+        }
+    }
+    function shapeHash({ orig, dest, brush, piece, modifiers, customSvg, label, below }, shorten, current, bounds) {
+        // a shape and an overlay svg share a lifetime and have the same cgHash attribute
+        return [
+            bounds.width,
+            bounds.height,
+            current,
+            orig,
+            dest,
+            brush,
+            shorten && '-',
+            piece && pieceHash(piece),
+            modifiers && modifiersHash(modifiers),
+            customSvg && `custom-${textHash(customSvg.html)},${customSvg.center?.[0] ?? 'o'}`,
+            label && `label-${textHash(label.text)}`,
+            below && 'below',
+        ]
+            .filter(x => x)
+            .join(',');
+    }
+    function pieceHash(piece) {
+        return [piece.color, piece.role, piece.scale].filter(x => x).join(',');
+    }
+    function modifiersHash(m) {
+        return [m.lineWidth, m.hilite].filter(x => x).join(',');
+    }
+    function textHash(s) {
+        // Rolling hash with base 31 (cf. https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript)
+        let h = 0;
+        for (let i = 0; i < s.length; i++) {
+            h = ((h << 5) - h + s.charCodeAt(i)) >>> 0;
+        }
+        return h.toString();
+    }
+    function renderShape$1(state, { shape, current, hash }, brushes, dests, bounds) {
+        const from = pos2user(orient(key2pos(shape.orig), state.orientation), bounds), to = shape.dest ? pos2user(orient(key2pos(shape.dest), state.orientation), bounds) : from, brush = shape.brush && makeCustomBrush(brushes[shape.brush], shape.modifiers), slots = dests.get(shape.dest), svgs = [];
+        if (brush) {
+            const el = setAttributes(createElement('g'), { cgHash: hash });
+            svgs.push({ el });
+            if (from[0] !== to[0] || from[1] !== to[1])
+                el.appendChild(renderArrow(shape, brush, from, to, current, isShort(shape.dest, dests)));
+            else
+                el.appendChild(renderCircle(brushes[shape.brush], from, current, bounds));
+        }
+        if (shape.label) {
+            const label = shape.label;
+            label.fill ?? (label.fill = shape.brush && brushes[shape.brush].color);
+            const corner = shape.brush ? undefined : 'tr';
+            svgs.push({ el: renderLabel(label, hash, from, to, slots, corner), isCustom: true });
+        }
+        if (shape.customSvg) {
+            const on = shape.customSvg.center ?? 'orig';
+            const [x, y] = on === 'label' ? labelCoords(from, to, slots).map(c => c - 0.5) : on === 'dest' ? to : from;
+            const el = setAttributes(createElement('g'), { transform: `translate(${x},${y})`, cgHash: hash });
+            el.innerHTML = `<svg width="1" height="1" viewBox="0 0 100 100">${shape.customSvg.html}</svg>`;
+            svgs.push({ el, isCustom: true });
+        }
+        return svgs;
+    }
+    function renderCircle(brush, at, current, bounds) {
+        const widths = circleWidth(), radius = (bounds.width + bounds.height) / (4 * Math.max(bounds.width, bounds.height));
+        return setAttributes(createElement('circle'), {
+            stroke: brush.color,
+            'stroke-width': widths[current ? 0 : 1],
+            fill: 'none',
+            opacity: opacity(brush, current),
+            cx: at[0],
+            cy: at[1],
+            r: radius - widths[1] / 2,
+        });
+    }
+    function renderArrow(s, brush, from, to, current, shorten) {
+        function renderLine(isHilite) {
+            const m = arrowMargin(shorten && !current), dx = to[0] - from[0], dy = to[1] - from[1], angle = Math.atan2(dy, dx), xo = Math.cos(angle) * m, yo = Math.sin(angle) * m;
+            const hilite = hiliteOf(s);
+            return setAttributes(createElement('line'), {
+                stroke: isHilite ? hilite.color : brush.color,
+                'stroke-width': lineWidth(brush, current) * (isHilite ? 1.14 : 1),
+                'stroke-linecap': 'round',
+                'marker-end': `url(#arrowhead-${isHilite ? hilite.key : brush.key})`,
+                opacity: s.modifiers?.hilite ? 1 : opacity(brush, current),
+                x1: from[0],
+                y1: from[1],
+                x2: to[0] - xo,
+                y2: to[1] - yo,
+            });
+        }
+        if (!s.modifiers?.hilite)
+            return renderLine(false);
+        const g = setAttributes(createElement('g'), { opacity: brush.opacity });
+        const blurred = setAttributes(createElement('g'), { filter: 'url(#cg-filter-blur)' });
+        blurred.appendChild(filterBox(from, to));
+        blurred.appendChild(renderLine(true));
+        g.appendChild(blurred);
+        g.appendChild(renderLine(false));
+        return g;
+    }
+    function renderMarker(brush) {
+        const marker = setAttributes(createElement('marker'), {
+            id: 'arrowhead-' + brush.key,
+            orient: 'auto',
+            overflow: 'visible',
+            markerWidth: 4,
+            markerHeight: 4,
+            refX: brush.key.startsWith('hilite') ? 1.86 : 2.05,
+            refY: 2,
+        });
+        marker.appendChild(setAttributes(createElement('path'), {
+            d: 'M0,0 V4 L3,2 Z',
+            fill: brush.color,
+        }));
+        marker.setAttribute('cgKey', brush.key);
+        return marker;
+    }
+    function renderLabel(label, hash, from, to, slots, corner) {
+        const labelSize = 0.4, fontSize = labelSize * 0.75 ** label.text.length, at = labelCoords(from, to, slots), cornerOff = corner === 'tr' ? 0.4 : 0, g = setAttributes(createElement('g'), {
+            transform: `translate(${at[0] + cornerOff},${at[1] - cornerOff})`,
+            cgHash: hash,
+        });
+        g.appendChild(setAttributes(createElement('circle'), {
+            r: labelSize / 2,
+            'fill-opacity': corner ? 1.0 : 0.8,
+            'stroke-opacity': corner ? 1.0 : 0.7,
+            'stroke-width': 0.03,
+            fill: label.fill ?? '#666',
+            stroke: 'white',
+        }));
+        const labelEl = setAttributes(createElement('text'), {
+            'font-size': fontSize,
+            'font-family': 'Noto Sans',
+            'text-anchor': 'middle',
+            fill: 'white',
+            y: 0.13 * 0.75 ** label.text.length,
+        });
+        labelEl.innerHTML = label.text;
+        g.appendChild(labelEl);
+        return g;
+    }
+    function orient(pos, color) {
+        return color === 'white' ? pos : [7 - pos[0], 7 - pos[1]];
+    }
+    function isShort(dest, dests) {
+        return true === (dest && dests.has(dest) && dests.get(dest).size > 1);
+    }
+    function createElement(tagName) {
+        return document.createElementNS('http://www.w3.org/2000/svg', tagName);
+    }
+    function setAttributes(el, attrs) {
+        for (const key in attrs) {
+            if (Object.prototype.hasOwnProperty.call(attrs, key))
+                el.setAttribute(key, attrs[key]);
+        }
+        return el;
+    }
+    function makeCustomBrush(base, modifiers) {
+        return !modifiers
+            ? base
+            : {
+                color: base.color,
+                opacity: Math.round(base.opacity * 10) / 10,
+                lineWidth: Math.round(modifiers.lineWidth || base.lineWidth),
+                key: [base.key, modifiers.lineWidth].filter(x => x).join(''),
+            };
+    }
+    function circleWidth() {
+        return [3 / 64, 4 / 64];
+    }
+    function lineWidth(brush, current) {
+        return ((brush.lineWidth || 10) * (current ? 0.85 : 1)) / 64;
+    }
+    function hiliteOf(shape) {
+        const hilite = shape.modifiers?.hilite;
+        return { key: hilite && `hilite-${hilite.replace('#', '')}`, color: hilite };
+    }
+    function opacity(brush, current) {
+        return (brush.opacity || 1) * (current ? 0.9 : 1);
+    }
+    function arrowMargin(shorten) {
+        return (shorten ? 20 : 10) / 64;
+    }
+    function pos2user(pos, bounds) {
+        const xScale = Math.min(1, bounds.width / bounds.height);
+        const yScale = Math.min(1, bounds.height / bounds.width);
+        return [(pos[0] - 3.5) * xScale, (3.5 - pos[1]) * yScale];
+    }
+    function filterBox(from, to) {
+        // lines/arrows are considered to be one dimensional for the purposes of SVG filters,
+        // so we add a transparent bounding box to ensure they apply to the 2nd dimension
+        const box = {
+            from: [Math.floor(Math.min(from[0], to[0])), Math.floor(Math.min(from[1], to[1]))],
+            to: [Math.ceil(Math.max(from[0], to[0])), Math.ceil(Math.max(from[1], to[1]))],
+        };
+        return setAttributes(createElement('rect'), {
+            x: box.from[0],
+            y: box.from[1],
+            width: box.to[0] - box.from[0],
+            height: box.to[1] - box.from[1],
+            fill: 'none',
+            stroke: 'none',
+        });
+    }
+    function moveAngle(from, to, asSlot = true) {
+        const angle = Math.atan2(to[1] - from[1], to[0] - from[0]) + Math.PI;
+        return asSlot ? (Math.round((angle * 8) / Math.PI) + 16) % 16 : angle;
+    }
+    function dist(from, to) {
+        return Math.sqrt([from[0] - to[0], from[1] - to[1]].reduce((acc, x) => acc + x * x, 0));
+    }
+    /*
+     try to place label at the junction of the destination shaft and arrowhead. if there's more than
+     1 arrow pointing to a square, the arrow shortens by 10 / 64 units so the label must move as well.
+     
+     if the angle between two incoming arrows is pi / 8, such as when an adjacent knight and bishop
+     attack the same square, the knight's label is slid further down the shaft by an amount equal to
+     our label size to avoid collision
+    */
+    function labelCoords(from, to, slots) {
+        let mag = dist(from, to);
+        //if (mag === 0) return [from[0], from[1]];
+        const angle = moveAngle(from, to, false);
+        if (slots) {
+            mag -= 33 / 64; // reduce by arrowhead length
+            if (slots.size > 1) {
+                mag -= 10 / 64; // reduce by shortening factor
+                const slot = moveAngle(from, to);
+                if (slots.has((slot + 1) % 16) || slots.has((slot + 15) % 16)) {
+                    if (slot & 1)
+                        mag -= 0.4;
+                    // and by label size for the knight if another arrow is within pi / 8.
+                }
+            }
+        }
+        return [from[0] - Math.cos(angle) * mag, from[1] - Math.sin(angle) * mag].map(c => c + 0.5);
+    }
+
+    function renderWrap(element, s) {
+        // .cg-wrap (element passed to Chessground)
+        //   cg-container
+        //     cg-board
+        //     svg.cg-shapes
+        //       defs
+        //       g
+        //     svg.cg-custom-svgs
+        //       g
+        //     cg-auto-pieces
+        //     coords.ranks
+        //     coords.files
+        //     piece.ghost
+        element.innerHTML = '';
+        // ensure the cg-wrap class is set
+        // so bounds calculation can use the CSS width/height values
+        // add that class yourself to the element before calling chessground
+        // for a slight performance improvement! (avoids recomputing style)
+        element.classList.add('cg-wrap');
+        for (const c of colors)
+            element.classList.toggle('orientation-' + c, s.orientation === c);
+        element.classList.toggle('manipulable', !s.viewOnly);
+        const container = createEl('cg-container');
+        element.appendChild(container);
+        const board = createEl('cg-board');
+        container.appendChild(board);
+        let shapesBelow;
+        let shapes;
+        let customBelow;
+        let custom;
+        let autoPieces;
+        if (s.drawable.visible) {
+            [shapesBelow, shapes] = ['cg-shapes-below', 'cg-shapes'].map(cls => svgContainer(cls, true));
+            [customBelow, custom] = ['cg-custom-below', 'cg-custom-svgs'].map(cls => svgContainer(cls, false));
+            autoPieces = createEl('cg-auto-pieces');
+            container.appendChild(shapesBelow);
+            container.appendChild(customBelow);
+            container.appendChild(shapes);
+            container.appendChild(custom);
+            container.appendChild(autoPieces);
+        }
+        if (s.coordinates) {
+            const orientClass = s.orientation === 'black' ? ' black' : '';
+            const ranksPositionClass = s.ranksPosition === 'left' ? ' left' : '';
+            if (s.coordinatesOnSquares) {
+                const rankN = s.orientation === 'white' ? i => i + 1 : i => 8 - i;
+                files.forEach((f, i) => container.appendChild(renderCoords(ranks.map(r => f + r), 'squares rank' + rankN(i) + orientClass + ranksPositionClass)));
+            }
+            else {
+                container.appendChild(renderCoords(ranks, 'ranks' + orientClass + ranksPositionClass));
+                container.appendChild(renderCoords(files, 'files' + orientClass));
+            }
+        }
+        let ghost;
+        if (s.draggable.enabled && s.draggable.showGhost) {
+            ghost = createEl('piece', 'ghost');
+            setVisible(ghost, false);
+            container.appendChild(ghost);
+        }
+        return { board, container, wrap: element, ghost, shapes, shapesBelow, custom, customBelow, autoPieces };
+    }
+    function svgContainer(cls, isShapes) {
+        const svg = setAttributes(createElement('svg'), {
+            class: cls,
+            viewBox: isShapes ? '-4 -4 8 8' : '-3.5 -3.5 8 8',
+            preserveAspectRatio: 'xMidYMid slice',
+        });
+        if (isShapes)
+            svg.appendChild(createDefs());
+        svg.appendChild(createElement('g'));
+        return svg;
+    }
+    function renderCoords(elems, className) {
+        const el = createEl('coords', className);
+        let f;
+        for (const elem of elems) {
+            f = createEl('coord');
+            f.textContent = elem;
+            el.appendChild(f);
+        }
+        return el;
+    }
+
+    function drop(s, e) {
+        if (!s.dropmode.active)
+            return;
+        unsetPremove(s);
+        unsetPredrop(s);
+        const piece = s.dropmode.piece;
+        if (piece) {
+            s.pieces.set('a0', piece);
+            const position = eventPosition(e);
+            const dest = position && getKeyAtDomPos(position, whitePov(s), s.dom.bounds());
+            if (dest)
+                dropNewPiece(s, 'a0', dest);
+        }
+        s.dom.redraw();
+    }
+
+    function bindBoard(s, onResize) {
+        const boardEl = s.dom.elements.board;
+        if ('ResizeObserver' in window)
+            new ResizeObserver(onResize).observe(s.dom.elements.wrap);
+        if (s.disableContextMenu || s.drawable.enabled) {
+            boardEl.addEventListener('contextmenu', e => e.preventDefault());
+        }
+        if (s.viewOnly)
+            return;
+        // Cannot be passive, because we prevent touch scrolling and dragging of
+        // selected elements.
+        const onStart = startDragOrDraw(s);
+        boardEl.addEventListener('touchstart', onStart, {
+            passive: false,
+        });
+        boardEl.addEventListener('mousedown', onStart, {
+            passive: false,
+        });
+    }
+    // returns the unbind function
+    function bindDocument(s, onResize) {
+        const unbinds = [];
+        // Old versions of Edge and Safari do not support ResizeObserver. Send
+        // chessground.resize if a user action has changed the bounds of the board.
+        if (!('ResizeObserver' in window))
+            unbinds.push(unbindable(document.body, 'chessground.resize', onResize));
+        if (!s.viewOnly) {
+            const onmove = dragOrDraw(s, move, move$1);
+            const onend = dragOrDraw(s, end, end$1);
+            for (const ev of ['touchmove', 'mousemove'])
+                unbinds.push(unbindable(document, ev, onmove));
+            for (const ev of ['touchend', 'mouseup'])
+                unbinds.push(unbindable(document, ev, onend));
+            const onScroll = () => s.dom.bounds.clear();
+            unbinds.push(unbindable(document, 'scroll', onScroll, { capture: true, passive: true }));
+            unbinds.push(unbindable(window, 'resize', onScroll, { passive: true }));
+        }
+        return () => unbinds.forEach(f => f());
+    }
+    function unbindable(el, eventName, callback, options) {
+        el.addEventListener(eventName, callback, options);
+        return () => el.removeEventListener(eventName, callback, options);
+    }
+    const startDragOrDraw = (s) => e => {
+        if (s.draggable.current)
+            cancel(s);
+        else if (s.drawable.current)
+            cancel$1(s);
+        else if (e.shiftKey || isRightButton(e)) {
+            if (s.drawable.enabled)
+                start$2(s, e);
+        }
+        else if (!s.viewOnly) {
+            if (s.dropmode.active)
+                drop(s, e);
+            else
+                start$1(s, e);
+        }
+    };
+    const dragOrDraw = (s, withDrag, withDraw) => e => {
+        if (s.drawable.current) {
+            if (s.drawable.enabled)
+                withDraw(s, e);
+        }
+        else if (!s.viewOnly)
+            withDrag(s, e);
+    };
+
+    // ported from https://github.com/lichess-org/lichobile/blob/master/src/chessground/render.ts
+    // in case of bugs, blame @veloce
+    function render$1(s) {
+        const asWhite = whitePov(s), posToTranslate$1 = posToTranslate(s.dom.bounds()), boardEl = s.dom.elements.board, pieces = s.pieces, curAnim = s.animation.current, anims = curAnim ? curAnim.plan.anims : new Map(), fadings = curAnim ? curAnim.plan.fadings : new Map(), curDrag = s.draggable.current, squares = computeSquareClasses(s), samePieces = new Set(), sameSquares = new Set(), movedPieces = new Map(), movedSquares = new Map(); // by class name
+        let k, el, pieceAtKey, elPieceName, anim, fading, pMvdset, pMvd, sMvdset, sMvd;
+        // walk over all board dom elements, apply animations and flag moved pieces
+        el = boardEl.firstChild;
+        while (el) {
+            k = el.cgKey;
+            if (isPieceNode(el)) {
+                pieceAtKey = pieces.get(k);
+                anim = anims.get(k);
+                fading = fadings.get(k);
+                elPieceName = el.cgPiece;
+                // if piece not being dragged anymore, remove dragging style
+                if (el.cgDragging && (!curDrag || curDrag.orig !== k)) {
+                    el.classList.remove('dragging');
+                    translate(el, posToTranslate$1(key2pos(k), asWhite));
+                    el.cgDragging = false;
+                }
+                // remove fading class if it still remains
+                if (!fading && el.cgFading) {
+                    el.cgFading = false;
+                    el.classList.remove('fading');
+                }
+                // there is now a piece at this dom key
+                if (pieceAtKey) {
+                    // continue animation if already animating and same piece
+                    // (otherwise it could animate a captured piece)
+                    if (anim && el.cgAnimating && elPieceName === pieceNameOf(pieceAtKey)) {
+                        const pos = key2pos(k);
+                        pos[0] += anim[2];
+                        pos[1] += anim[3];
+                        el.classList.add('anim');
+                        translate(el, posToTranslate$1(pos, asWhite));
+                    }
+                    else if (el.cgAnimating) {
+                        el.cgAnimating = false;
+                        el.classList.remove('anim');
+                        translate(el, posToTranslate$1(key2pos(k), asWhite));
+                        if (s.addPieceZIndex)
+                            el.style.zIndex = posZIndex(key2pos(k), asWhite);
+                    }
+                    // same piece: flag as same
+                    if (elPieceName === pieceNameOf(pieceAtKey) && (!fading || !el.cgFading)) {
+                        samePieces.add(k);
+                    }
+                    // different piece: flag as moved unless it is a fading piece
+                    else {
+                        if (fading && elPieceName === pieceNameOf(fading)) {
+                            el.classList.add('fading');
+                            el.cgFading = true;
+                        }
+                        else {
+                            appendValue(movedPieces, elPieceName, el);
+                        }
+                    }
+                }
+                // no piece: flag as moved
+                else {
+                    appendValue(movedPieces, elPieceName, el);
+                }
+            }
+            else if (isSquareNode(el)) {
+                const cn = el.className;
+                if (squares.get(k) === cn)
+                    sameSquares.add(k);
+                else
+                    appendValue(movedSquares, cn, el);
+            }
+            el = el.nextSibling;
+        }
+        // walk over all squares in current set, apply dom changes to moved squares
+        // or append new squares
+        for (const [sk, className] of squares) {
+            if (!sameSquares.has(sk)) {
+                sMvdset = movedSquares.get(className);
+                sMvd = sMvdset && sMvdset.pop();
+                const translation = posToTranslate$1(key2pos(sk), asWhite);
+                if (sMvd) {
+                    sMvd.cgKey = sk;
+                    translate(sMvd, translation);
+                }
+                else {
+                    const squareNode = createEl('square', className);
+                    squareNode.cgKey = sk;
+                    translate(squareNode, translation);
+                    boardEl.insertBefore(squareNode, boardEl.firstChild);
+                }
+            }
+        }
+        // walk over all pieces in current set, apply dom changes to moved pieces
+        // or append new pieces
+        for (const [k, p] of pieces) {
+            anim = anims.get(k);
+            if (!samePieces.has(k)) {
+                pMvdset = movedPieces.get(pieceNameOf(p));
+                pMvd = pMvdset && pMvdset.pop();
+                // a same piece was moved
+                if (pMvd) {
+                    // apply dom changes
+                    pMvd.cgKey = k;
+                    if (pMvd.cgFading) {
+                        pMvd.classList.remove('fading');
+                        pMvd.cgFading = false;
+                    }
+                    const pos = key2pos(k);
+                    if (s.addPieceZIndex)
+                        pMvd.style.zIndex = posZIndex(pos, asWhite);
+                    if (anim) {
+                        pMvd.cgAnimating = true;
+                        pMvd.classList.add('anim');
+                        pos[0] += anim[2];
+                        pos[1] += anim[3];
+                    }
+                    translate(pMvd, posToTranslate$1(pos, asWhite));
+                }
+                // no piece in moved obj: insert the new piece
+                // assumes the new piece is not being dragged
+                else {
+                    const pieceName = pieceNameOf(p), pieceNode = createEl('piece', pieceName), pos = key2pos(k);
+                    pieceNode.cgPiece = pieceName;
+                    pieceNode.cgKey = k;
+                    if (anim) {
+                        pieceNode.cgAnimating = true;
+                        pos[0] += anim[2];
+                        pos[1] += anim[3];
+                    }
+                    translate(pieceNode, posToTranslate$1(pos, asWhite));
+                    if (s.addPieceZIndex)
+                        pieceNode.style.zIndex = posZIndex(pos, asWhite);
+                    boardEl.appendChild(pieceNode);
+                }
+            }
+        }
+        // remove any element that remains in the moved sets
+        for (const nodes of movedPieces.values())
+            removeNodes(s, nodes);
+        for (const nodes of movedSquares.values())
+            removeNodes(s, nodes);
+    }
+    function renderResized$1(s) {
+        const asWhite = whitePov(s), posToTranslate$1 = posToTranslate(s.dom.bounds());
+        let el = s.dom.elements.board.firstChild;
+        while (el) {
+            if ((isPieceNode(el) && !el.cgAnimating) || isSquareNode(el)) {
+                translate(el, posToTranslate$1(key2pos(el.cgKey), asWhite));
+            }
+            el = el.nextSibling;
+        }
+    }
+    function updateBounds(s) {
+        const bounds = s.dom.elements.wrap.getBoundingClientRect();
+        const container = s.dom.elements.container;
+        const ratio = bounds.height / bounds.width;
+        const width = (Math.floor((bounds.width * window.devicePixelRatio) / 8) * 8) / window.devicePixelRatio;
+        const height = width * ratio;
+        container.style.width = width + 'px';
+        container.style.height = height + 'px';
+        s.dom.bounds.clear();
+        s.addDimensionsCssVarsTo?.style.setProperty('---cg-width', width + 'px');
+        s.addDimensionsCssVarsTo?.style.setProperty('---cg-height', height + 'px');
+    }
+    const isPieceNode = (el) => el.tagName === 'PIECE';
+    const isSquareNode = (el) => el.tagName === 'SQUARE';
+    function removeNodes(s, nodes) {
+        for (const node of nodes)
+            s.dom.elements.board.removeChild(node);
+    }
+    function posZIndex(pos, asWhite) {
+        const minZ = 3;
+        const rank = pos[1];
+        const z = asWhite ? minZ + 7 - rank : minZ + rank;
+        return `${z}`;
+    }
+    const pieceNameOf = (piece) => `${piece.color} ${piece.role}`;
+    function computeSquareClasses(s) {
+        const squares = new Map();
+        if (s.lastMove && s.highlight.lastMove)
+            for (const k of s.lastMove) {
+                addSquare(squares, k, 'last-move');
+            }
+        if (s.check && s.highlight.check)
+            addSquare(squares, s.check, 'check');
+        if (s.selected) {
+            addSquare(squares, s.selected, 'selected');
+            if (s.movable.showDests) {
+                const dests = s.movable.dests?.get(s.selected);
+                if (dests)
+                    for (const k of dests) {
+                        addSquare(squares, k, 'move-dest' + (s.pieces.has(k) ? ' oc' : ''));
+                    }
+                const pDests = s.premovable.customDests?.get(s.selected) ?? s.premovable.dests;
+                if (pDests)
+                    for (const k of pDests) {
+                        addSquare(squares, k, 'premove-dest' + (s.pieces.has(k) ? ' oc' : ''));
+                    }
+            }
+        }
+        const premove = s.premovable.current;
+        if (premove)
+            for (const k of premove)
+                addSquare(squares, k, 'current-premove');
+        else if (s.predroppable.current)
+            addSquare(squares, s.predroppable.current.key, 'current-premove');
+        const o = s.exploding;
+        if (o)
+            for (const k of o.keys)
+                addSquare(squares, k, 'exploding' + o.stage);
+        if (s.highlight.custom) {
+            s.highlight.custom.forEach((v, k) => {
+                addSquare(squares, k, v);
+            });
+        }
+        return squares;
+    }
+    function addSquare(squares, key, klass) {
+        const classes = squares.get(key);
+        if (classes)
+            squares.set(key, `${classes} ${klass}`);
+        else
+            squares.set(key, klass);
+    }
+    function appendValue(map, key, value) {
+        const arr = map.get(key);
+        if (arr)
+            arr.push(value);
+        else
+            map.set(key, [value]);
+    }
+
+    // append and remove only. No updates.
+    function syncShapes(shapes, root, renderShape) {
+        const hashesInDom = new Map(), // by hash
+        toRemove = [];
+        for (const sc of shapes)
+            hashesInDom.set(sc.hash, false);
+        let el = root.firstElementChild, elHash;
+        while (el) {
+            elHash = el.getAttribute('cgHash');
+            // found a shape element that's here to stay
+            if (hashesInDom.has(elHash))
+                hashesInDom.set(elHash, true);
+            // or remove it
+            else
+                toRemove.push(el);
+            el = el.nextElementSibling;
+        }
+        // remove old shapes
+        for (const el of toRemove)
+            root.removeChild(el);
+        // insert shapes that are not yet in dom
+        for (const sc of shapes) {
+            if (!hashesInDom.get(sc.hash))
+                root.appendChild(renderShape(sc));
+        }
+    }
+
+    function render(state, autoPieceEl) {
+        const autoPieces = state.drawable.autoShapes.filter(autoShape => autoShape.piece);
+        const autoPieceShapes = autoPieces.map((s) => {
+            return {
+                shape: s,
+                hash: hash(s),
+                current: false,
+            };
+        });
+        syncShapes(autoPieceShapes, autoPieceEl, shape => renderShape(state, shape, state.dom.bounds()));
+    }
+    function renderResized(state) {
+        const asWhite = whitePov(state), posToTranslate$1 = posToTranslate(state.dom.bounds());
+        let el = state.dom.elements.autoPieces?.firstChild;
+        while (el) {
+            translateAndScale(el, posToTranslate$1(key2pos(el.cgKey), asWhite), el.cgScale);
+            el = el.nextSibling;
+        }
+    }
+    function renderShape(state, { shape, hash }, bounds) {
+        const orig = shape.orig;
+        const role = shape.piece?.role;
+        const color = shape.piece?.color;
+        const scale = shape.piece?.scale;
+        const pieceEl = createEl('piece', `${role} ${color}`);
+        pieceEl.setAttribute('cgHash', hash);
+        pieceEl.cgKey = orig;
+        pieceEl.cgScale = scale;
+        translateAndScale(pieceEl, posToTranslate(bounds)(key2pos(orig), whitePov(state)), scale);
+        return pieceEl;
+    }
+    const hash = (autoPiece) => [autoPiece.orig, autoPiece.piece?.role, autoPiece.piece?.color, autoPiece.piece?.scale].join(',');
+
+    function initModule({ el, config }) {
+        return Chessground(el, config);
+    }
+    function Chessground(element, config) {
+        const maybeState = defaults();
+        configure(maybeState, config || {});
+        function redrawAll() {
+            const prevUnbind = 'dom' in maybeState ? maybeState.dom.unbind : undefined;
+            // compute bounds from existing board element if possible
+            // this allows non-square boards from CSS to be handled (for 3D)
+            const elements = renderWrap(element, maybeState), bounds = memo(() => elements.board.getBoundingClientRect()), redrawNow = (skipSvg) => {
+                render$1(state);
+                if (elements.autoPieces)
+                    render(state, elements.autoPieces);
+                if (!skipSvg && elements.shapes)
+                    renderSvg(state, elements);
+            }, onResize = () => {
+                updateBounds(state);
+                renderResized$1(state);
+                if (elements.autoPieces)
+                    renderResized(state);
+            };
+            const state = maybeState;
+            state.dom = {
+                elements,
+                bounds,
+                redraw: debounceRedraw(redrawNow),
+                redrawNow,
+                unbind: prevUnbind,
+            };
+            state.drawable.prevSvgHash = '';
+            updateBounds(state);
+            redrawNow(false);
+            bindBoard(state, onResize);
+            if (!prevUnbind)
+                state.dom.unbind = bindDocument(state, onResize);
+            state.events.insert && state.events.insert(elements);
+            return state;
+        }
+        return start(redrawAll(), redrawAll);
+    }
+    function debounceRedraw(redrawNow) {
+        let redrawing = false;
+        return () => {
+            if (redrawing)
+                return;
+            redrawing = true;
+            requestAnimationFrame(() => {
+                redrawNow();
+                redrawing = false;
+            });
+        };
+    }
+
+    exports.Chessground = Chessground;
+    exports.initModule = initModule;
+
+}));
+//# sourceMappingURL=chessground.js.map
