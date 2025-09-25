@@ -57,3 +57,21 @@
         width: 100%;
     }
 }
+
+/* Thème Brown pour l'échiquier */
+.brown cg-board {
+    background-image: url('../assets/img/brown.png');
+}
+
+/* Coordonnées lisibles pour le thème Brown avec contour */
+.brown coords {
+    font-size: 14px;
+    color: white;
+    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
+    opacity: 1;
+}
+
+/* Correction du positionnement des lettres de colonnes */
+.brown coords.files {
+    bottom: 2px; /* Remonte les lettres pour un meilleur alignement */
+}

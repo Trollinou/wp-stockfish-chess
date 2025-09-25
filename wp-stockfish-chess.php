@@ -11,10 +11,10 @@ if (!defined('ABSPATH')) {
 }
 
 function wps_stockfish_chess_shortcode() {
-    // Le contenu HTML. Notez la classe 'blue' pour le thème de l'échiquier.
+    // Le contenu HTML. Notez la classe 'brown' pour le thème de l'échiquier.
     $content = '
         <div id="wps-chess-container">
-            <div id="board-container" class="blue">
+            <div id="board-container" class="brown">
                 <div id="chess-board"></div>
             </div>
             <div id="game-info">
