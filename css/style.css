@@ -63,15 +63,30 @@
     background-image: url('../assets/img/brown.png');
 }
 
-/* Coordonnées lisibles pour le thème Brown avec contour */
+/* Style de base pour les coordonnées du thème Brown */
 .brown coords {
-    font-size: 14px;
-    color: white;
-    text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000;
-    opacity: 1;
+    font-size: 14px !important;
+    text-shadow: none !important;
+    opacity: 1 !important;
+}
+
+/* --- Couleur foncée (#946f51) pour les coordonnées sur les cases claires --- */
+.brown .orientation-white .ranks :nth-child(odd),
+.brown .orientation-white .files :nth-child(odd),
+.brown .orientation-black .ranks :nth-child(even),
+.brown .orientation-black .files :nth-child(even) {
+    color: #946f51 !important;
+}
+
+/* --- Couleur claire (#f0d9b5) pour les coordonnées sur les cases foncées --- */
+.brown .orientation-white .ranks :nth-child(even),
+.brown .orientation-white .files :nth-child(even),
+.brown .orientation-black .ranks :nth-child(odd),
+.brown .orientation-black .files :nth-child(odd) {
+    color: #f0d9b5 !important;
 }
 
 /* Correction du positionnement des lettres de colonnes */
 .brown coords.files {
-    bottom: 2px; /* Remonte les lettres pour un meilleur alignement */
+    bottom: 2px;
 }
