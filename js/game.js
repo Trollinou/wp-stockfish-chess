@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 free: false,
                 dests: toDests(game),
             },
+            coordinates: true, // Affiche les coordonnées sur les cases
             events: {
                 move: onUserMove
             },
