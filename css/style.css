@@ -65,37 +65,51 @@
     background-image: url('../assets/img/brown.png');
 }
 
-/* --- Style des coordonnées internes --- */
-.brown coords {
-    font-size: 12px; /* Taille de police adaptée pour l'intérieur des cases */
+/* --- Style et positionnement des coordonnées externes --- */
+
+/* Style de base commun pour les conteneurs de coordonnées */
+.brown #chess-board coords {
+    font-size: 13px;
     font-weight: bold;
-    text-shadow: none !important;
-    opacity: 0.8 !important;
+    opacity: 0.9;
 }
 
-/* Positionnement des chiffres (rangées) en haut à gauche */
-.brown coords.ranks {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    pointer-events: none;
+/* Positionnement des chiffres (rangées) */
+.brown #chess-board coords.ranks {
+    left: -20px;
+    top: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
 }
 
-/* Positionnement des lettres (colonnes) en bas à droite */
-.brown coords.files {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    text-align: right;
-    pointer-events: none;
+/* Positionnement des lettres (colonnes) */
+.brown #chess-board coords.files {
+    bottom: -20px;
+    left: 0;
+    width: 100%;
+    height: 16px;
+    display: flex;
+    justify-content: space-around;
 }
 
-/* --- Couleur claire pour les coordonnées sur les cases noires --- */
-.brown square.black coords {
-    color: #f0d9b5;
+/* Neutralise les transformations par défaut et centre le texte */
+.brown #chess-board coords coord {
+    transform: none !important;
+    text-align: center;
 }
 
-/* --- Couleur foncée pour les coordonnées sur les cases blanches --- */
-.brown square.white coords {
-    color: #946f51;
-}
+/* --- Couleurs des coordonnées (logique correcte) --- */
+
+/* Pour l'orientation blanche */
+.brown #chess-board.orientation-white coords.ranks coord:nth-child(odd) { color: #f0d9b5; } /* 1,3,5,7 -> cases foncées */
+.brown #chess-board.orientation-white coords.ranks coord:nth-child(even) { color: #946f51; } /* 2,4,6,8 -> cases claires */
+.brown #chess-board.orientation-white coords.files coord:nth-child(odd) { color: #f0d9b5; } /* a,c,e,g -> cases foncées */
+.brown #chess-board.orientation-white coords.files coord:nth-child(even) { color: #946f51; } /* b,d,f,h -> cases claires */
+
+/* Pour l'orientation noire (la logique des rangées est inversée visuellement) */
+.brown #chess-board.orientation-black coords.ranks coord:nth-child(odd) { color: #946f51; } /* 8,6,4,2 -> cases claires */
+.brown #chess-board.orientation-black coords.ranks coord:nth-child(even) { color: #f0d9b5; } /* 7,5,3,1 -> cases foncées */
+.brown #chess-board.orientation-black coords.files coord:nth-child(odd) { color: #f0d9b5; } /* h,f,d,b -> la case est toujours foncée */
+.brown #chess-board.orientation-black coords.files coord:nth-child(even) { color: #946f51; } /* g,e,c,a -> la case est toujours claire */
