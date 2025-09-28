@@ -70,20 +70,20 @@
     opacity: 1 !important;
 }
 
-/* --- Couleur foncée (#946f51) pour les coordonnées sur les cases claires --- */
+/* --- Couleur claire (#f0d9b5) pour les coordonnées sur les cases noires (ex: a1) --- */
 .brown .orientation-white .ranks :nth-child(odd),
 .brown .orientation-white .files :nth-child(odd),
 .brown .orientation-black .ranks :nth-child(even),
 .brown .orientation-black .files :nth-child(even) {
-    color: #946f51 !important;
+    color: #f0d9b5 !important;
 }
 
-/* --- Couleur claire (#f0d9b5) pour les coordonnées sur les cases foncées --- */
+/* --- Couleur foncée (#946f51) pour les coordonnées sur les cases blanches --- */
 .brown .orientation-white .ranks :nth-child(even),
 .brown .orientation-white .files :nth-child(even),
 .brown .orientation-black .ranks :nth-child(odd),
 .brown .orientation-black .files :nth-child(odd) {
-    color: #f0d9b5 !important;
+    color: #946f51 !important;
 }
 
 /* Correction du positionnement des lettres de colonnes */
