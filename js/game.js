@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const config = {
             orientation: playerColor,
             turnColor: 'white', // Chess always starts with white to move
+            coordinates: true,
             fen: 'start',
             movable: {
                 color: playerColor,
