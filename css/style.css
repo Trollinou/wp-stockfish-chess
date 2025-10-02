@@ -57,14 +57,3 @@
         width: 100%;
     }
 }
-
-/* Brown theme customizations */
-#board-container.brown .is2d cg-board::before {
-    background-image: url(../assets/img/brown.png);
-}
-
-#board-container.brown .is2d coords {
-    --cg-ccw: #f0d9b5; /* Coordinate color on white squares */
-    --cg-ccb: #946f51; /* Coordinate color on black squares */
-    --cg-cs: none; /* Coordinate shadow */
-}

@@ -66,7 +66,7 @@ function wps_enqueue_chess_assets() {
 
         // --- NOUVEAUX STYLES CSS POUR CHESSGROUND ---
         wp_enqueue_style('chessground-base-css', $plugin_url . 'css/chessground.base.css');
-        wp_enqueue_style('chessground-theme-css', $plugin_url . 'css/chessground.brown.css'); // Thème "brown"
+        wp_enqueue_style('chessground-theme-css', $plugin_url . 'css/custom-brown.css'); // Thème "brown"
         wp_enqueue_style('chessground-pieces-css', $plugin_url . 'css/chessground.cburnett.css'); // Thème des pièces
         wp_enqueue_style('wps-stockfish-style', $plugin_url . 'css/style.css');
     }
