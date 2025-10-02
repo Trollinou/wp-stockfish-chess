@@ -31,6 +31,7 @@ function wps_stockfish_chess_shortcode() {
                 </div>
                 <p>Statut : <span id="status">En attente de votre coup...</span></p>
                 <button id="new-game-button">Nouvelle partie</button>
+                <button id="undo-button">Annuler le coup</button>
             </div>
             <div id="game-data">
                 <div class="game-data-item">
@@ -39,7 +40,7 @@ function wps_stockfish_chess_shortcode() {
                 </div>
                 <div class="game-data-item">
                     <strong>PGN:</strong>
-                    <textarea id="pgn-display" readonly rows="5" style="width: 100%;"></textarea>
+                    <textarea id="pgn-display" readonly rows="6" style="width: 100%;"></textarea>
                 </div>
             </div>
         </div>

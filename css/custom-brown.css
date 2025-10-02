@@ -48,25 +48,17 @@ cg-board square.current-premove {
   background-color: rgba(20, 30, 85, 0.5);
 }
 
-/** Alternating colors in rank/file/square labels */
-/* The color is now controlled by the --cg-ccw and --cg-ccb variables set above.
-   The original rules are commented out to prevent conflicts. */
-/*
-.orientation-white .ranks :nth-child(odd),
-.orientation-white .files :nth-child(even),
-.orientation-black .ranks :nth-child(even),
-.orientation-black .files :nth-child(odd),
-coords.squares:nth-of-type(odd) :nth-child(even),
-coords.squares:nth-of-type(even) :nth-child(odd) {
-  color: rgba(72, 72, 72, 0.8);
-}
-
+/** Official Lichess coordinate styling using CSS variables */
 .orientation-white .ranks :nth-child(even),
 .orientation-white .files :nth-child(odd),
 .orientation-black .ranks :nth-child(odd),
-.orientation-black .files :nth-child(even),
-coords.squares:nth-of-type(odd) :nth-child(odd),
-coords.squares:nth-of-type(even) :nth-child(even) {
-  color: rgba(255, 255, 255, 0.8);
+.orientation-black .files :nth-child(even) {
+  color: var(--cg-ccw, #fff);
 }
-*/
+
+.orientation-white .ranks :nth-child(odd),
+.orientation-white .files :nth-child(even),
+.orientation-black .ranks :nth-child(even),
+.orientation-black .files :nth-child(odd) {
+  color: var(--cg-ccb, #fff);
+}

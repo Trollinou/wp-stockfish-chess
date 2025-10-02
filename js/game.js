@@ -5,11 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- DOM Elements ---
+    const boardContainer = document.getElementById('board-container');
     const boardEl = document.getElementById('chess-board');
     const statusEl = document.getElementById('status');
     const eloSlider = document.getElementById('elo-slider');
     const eloValueSpan = document.getElementById('elo-value');
     const newGameButton = document.getElementById('new-game-button');
+    const undoButton = document.getElementById('undo-button');
     const fenDisplay = document.getElementById('fen-display');
     const pgnDisplay = document.getElementById('pgn-display');
 
@@ -162,10 +164,42 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         updateStatus();
+        resizeBoard(); // Set initial board size
+    }
+
+    // --- Board Resizing ---
+    function resizeBoard() {
+        if (boardContainer) {
+            const width = boardContainer.offsetWidth;
+            boardContainer.style.height = `${width}px`;
+        }
+    }
+
+    // --- Undo Move ---
+    function undoLastMove() {
+        // Can only undo if it's the player's turn (meaning the engine just moved)
+        if (game.turn() === ground.state.orientation[0]) {
+            game.undo(); // Undo engine's move
+            game.undo(); // Undo player's move
+
+            // Update the board
+            ground.set({
+                fen: game.fen(),
+                turnColor: game.turn() === 'w' ? 'white' : 'black',
+                movable: {
+                    color: game.turn() === 'w' ? 'white' : 'black',
+                    dests: toDests(game)
+                },
+                lastMove: null // Clear the last move highlight
+            });
+            updateStatus();
+        }
     }
 
     // --- Event Listeners ---
     newGameButton.addEventListener('click', startNewGame);
+    undoButton.addEventListener('click', undoLastMove);
+    window.addEventListener('resize', resizeBoard);
 
     // --- Initial Load ---
     startNewGame(); // Start a game on page load
